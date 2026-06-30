@@ -1,7 +1,9 @@
 import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+import { ScenarioCard } from "@/src/components/ScenarioCard";
 import { lessons } from "@/src/data/lessons";
+import { scenarios } from "@/src/data/scenarios";
 
 export default function LessonsScreen() {
   const router = useRouter();
@@ -14,42 +16,56 @@ export default function LessonsScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.title}>Leçons</Text>
-        <Text style={styles.subtitle}>Choisis une catégorie pour continuer.</Text>
+        <Text style={styles.subtitle}>Choisis une catégorie ou un scénario pour continuer.</Text>
       </View>
 
-      <View style={styles.list}>
-        {lessons.map((lesson) => (
-          <View key={lesson.id} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardText}>
-                <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                <Text style={styles.description}>{lesson.description}</Text>
-              </View>
-              <View style={styles.levelBadge}>
-                <Text style={styles.levelText}>{lesson.level}</Text>
-              </View>
-            </View>
-
-            <View style={styles.metaRow}>
-              <Text style={styles.metaText}>{lesson.wordCount} mots</Text>
-              <Text style={styles.metaText}>{lesson.progress}%</Text>
-            </View>
-
-            <View style={styles.progressTrack}>
-              <View
-                style={[styles.progressFill, { width: `${lesson.progress}%` }]}
-              />
-            </View>
-
-            <TouchableOpacity
-              activeOpacity={0.85}
-              style={styles.button}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Scénarios guidés</Text>
+        <View style={styles.list}>
+          {scenarios.map((scenario) => (
+            <ScenarioCard
+              key={scenario.id}
+              scenario={scenario}
               onPress={() => router.push("/quiz")}
-            >
-              <Text style={styles.buttonText}>Commencer</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+            />
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Catégories de vocabulaire</Text>
+        <View style={styles.list}>
+          {lessons.map((lesson) => (
+            <View key={lesson.id} style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardText}>
+                  <Text style={styles.lessonTitle}>{lesson.title}</Text>
+                  <Text style={styles.description}>{lesson.description}</Text>
+                </View>
+                <View style={styles.levelBadge}>
+                  <Text style={styles.levelText}>{lesson.level}</Text>
+                </View>
+              </View>
+
+              <View style={styles.metaRow}>
+                <Text style={styles.metaText}>{lesson.wordCount} mots</Text>
+                <Text style={styles.metaText}>{lesson.progress}%</Text>
+              </View>
+
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${lesson.progress}%` }]} />
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.button}
+                onPress={() => router.push("/quiz")}
+              >
+                <Text style={styles.buttonText}>Commencer</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
       </View>
     </ScrollView>
   );
@@ -66,7 +82,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   header: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   title: {
     color: "#f8fafc",
@@ -78,6 +94,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     marginTop: 6,
+    lineHeight: 21,
+  },
+  section: {
+    gap: 12,
+    marginBottom: 26,
+  },
+  sectionTitle: {
+    color: "#f8fafc",
+    fontSize: 20,
+    fontWeight: "900",
   },
   list: {
     gap: 14,
@@ -86,7 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#111827",
     borderColor: "#1f2937",
     borderWidth: 1,
-    borderRadius: 22,
+    borderRadius: 18,
     padding: 16,
     shadowColor: "#000",
     shadowOffset: {

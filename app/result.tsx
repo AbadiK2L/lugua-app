@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#111827",
     borderColor: "#1f2937",
     borderWidth: 1,
-    borderRadius: 24,
+    borderRadius: 18,
     padding: 24,
     alignItems: "center",
     shadowColor: "#000",
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   statBox: {
     flex: 1,
     backgroundColor: "#172033",
-    borderRadius: 18,
+    borderRadius: 16,
     padding: 16,
     alignItems: "center",
   },

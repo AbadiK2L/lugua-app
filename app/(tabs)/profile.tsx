@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#111827",
     borderColor: "#1f2937",
     borderWidth: 1,
-    borderRadius: 24,
+    borderRadius: 18,
     alignItems: "center",
     padding: 24,
     shadowColor: "#000",
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#111827",
     borderColor: "#1f2937",
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 18,
   },
   fullWidthCard: {
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#111827",
     borderColor: "#1f2937",
     borderWidth: 1,
-    borderRadius: 22,
+    borderRadius: 18,
     padding: 18,
   },
   sectionTitle: {

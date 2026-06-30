@@ -4,9 +4,12 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import ProgressBar from "../src/components/ProgressBar";
 import { QuizCard } from "../src/components/QuizCard";
-import { questions } from "../src/data/words";
+import { buildQuizQuestions } from "../src/data/words";
+
+const QUIZ_SIZE = 5;
 
 export default function QuizScreen() {
+  const [questions] = useState(() => buildQuizQuestions(QUIZ_SIZE));
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [score, setScore] = useState(0);
@@ -20,8 +23,8 @@ export default function QuizScreen() {
     }
 
     return selectedAnswer === currentQuestion.correct
-      ? "Bonne reponse !"
-      : `La bonne reponse etait : ${currentQuestion.correct}`;
+      ? "Bonne réponse !"
+      : `La bonne réponse était : ${currentQuestion.correct}`;
   }, [currentQuestion.correct, selectedAnswer]);
 
   function handleSelectAnswer(answer: string) {
@@ -62,6 +65,14 @@ export default function QuizScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>Retour</Text>
+        </TouchableOpacity>
+
         <Text style={styles.counter}>
           Question {questionIndex + 1}/{questions.length}
         </Text>
@@ -107,6 +118,21 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 12,
+  },
+  backButton: {
+    alignSelf: "flex-start",
+    minHeight: 38,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#334155",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 14,
+  },
+  backButtonText: {
+    color: "#e2e8f0",
+    fontSize: 14,
+    fontWeight: "800",
   },
   counter: {
     color: "#e2e8f0",
