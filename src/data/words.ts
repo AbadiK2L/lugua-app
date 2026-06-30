@@ -16,7 +16,7 @@ export const questions = [
   },
   {
     word: "hindru",
-    correct: "Chose",
-    options: ["Manger", "Jeu", "Chose"],
-  },
+    correct: "chose",
+    options: ["manger", "jeu", "chose"]
+  }
 ];
