@@ -1,6 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,13 +7,8 @@ import {
   View,
 } from "react-native";
 
-import { shikomoriQuestionsA1Path } from "@/src/data/curriculum";
-import type {
-  Concept,
-  ExerciseType,
-  LearningBlock,
-  ValidationStatus,
-} from "@/src/types/learning";
+import { findConceptDetails } from "@/src/data/curriculum";
+import type { ExerciseType, ValidationStatus } from "@/src/types/learning";
 
 const validationLabels: Record<ValidationStatus, string> = {
   draft: "Brouillon",
@@ -35,39 +29,8 @@ const exerciseTypeLabels: Record<ExerciseType, string> = {
   conversation: "Conversation",
 };
 
-type ConceptDetails = {
-  block: LearningBlock;
-  concept: Concept;
-};
-
 function normalizeParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function findConceptDetails(conceptId: string | undefined): ConceptDetails | undefined {
-  if (!conceptId) {
-    return undefined;
-  }
-
-  for (const block of shikomoriQuestionsA1Path.chapter.blocks) {
-    const concept = block.concepts.find((candidate) => candidate.id === conceptId);
-
-    if (concept) {
-      return {
-        block,
-        concept,
-      };
-    }
-  }
-
-  return undefined;
-}
-
-function showSoonMessage() {
-  Alert.alert(
-    "Bientôt disponible",
-    "La leçon interactive sera connectée dans une prochaine étape.",
-  );
 }
 
 export default function ConceptDetailScreen() {
@@ -99,6 +62,15 @@ export default function ConceptDetailScreen() {
   const { block, concept } = details;
   const primaryMeaning = concept.examples[0]?.frenchText ?? "Sens à préciser";
   const validationLabel = validationLabels[concept.validationStatus];
+
+  function startLesson() {
+    router.push({
+      pathname: "../lesson/[conceptId]",
+      params: {
+        conceptId: concept.id,
+      },
+    });
+  }
 
   return (
     <ScrollView
@@ -177,7 +149,7 @@ export default function ConceptDetailScreen() {
         </View>
       </View>
 
-      <TouchableOpacity activeOpacity={0.85} style={styles.primaryButton} onPress={showSoonMessage}>
+      <TouchableOpacity activeOpacity={0.85} style={styles.primaryButton} onPress={startLesson}>
         <Text style={styles.primaryButtonText}>Commencer la leçon</Text>
       </TouchableOpacity>
     </ScrollView>

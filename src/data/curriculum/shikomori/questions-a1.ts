@@ -10,6 +10,7 @@ import { shikomoriQuestionsA1Assessment } from "./questions-a1-assessment";
 const draftUserProvidedContent = {
   validationStatus: "draft",
   source: "user_provided",
+  audioStatus: "missing",
   dialect: "unspecified",
 } as const satisfies LinguisticContent;
 
@@ -33,6 +34,188 @@ export const shikomoriQuestionsA1Chapter: Chapter = {
           blockId: "questions-a1-block-place",
           key: "Ndahu",
           title: "Ndahu",
+          interactiveLesson: {
+            id: "questions-a1-lesson-ndahu",
+            conceptId: "questions-a1-concept-ndahu",
+            title: "Leçon interactive - Ndahu",
+            enabled: true,
+            unavailableMessage:
+              "Cette leçon interactive sera bientôt disponible.",
+            steps: [
+              {
+                id: "questions-a1-lesson-ndahu-objective",
+                type: "objective",
+                title: "Objectif",
+                objective: "Savoir demander où se trouve une personne.",
+                actionLabel: "Découvrir",
+                ...draftUserProvidedContent,
+              },
+              {
+                id: "questions-a1-lesson-ndahu-discovery",
+                type: "discovery",
+                title: "Découverte",
+                exampleIds: [
+                  "questions-a1-example-ndahu-kassim",
+                  "questions-a1-example-ndahu-simple",
+                ],
+                audioLabel: "Audio bientôt disponible",
+                actionLabel: "Continuer",
+                ...draftUserProvidedContent,
+              },
+              {
+                id: "questions-a1-lesson-ndahu-context",
+                type: "exercise",
+                exerciseType: "context_choice",
+                title: "Reconnaissance du contexte",
+                prompt: "Dans quelle situation utiliserais-tu « Ndahu » ?",
+                options: [
+                  {
+                    id: "questions-a1-lesson-ndahu-context-why",
+                    text: "Tu veux savoir pourquoi Kassim est parti.",
+                    explanation:
+                      "Cette situation cherche une raison, pas un lieu.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndahu-context-where",
+                    text: "Tu veux savoir où se trouve Kassim.",
+                    isCorrect: true,
+                    explanation:
+                      "Ndahu sert à demander où se trouve une personne ou un élément.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndahu-context-when",
+                    text: "Tu veux savoir quand Kassim viendra.",
+                    explanation:
+                      "Cette situation cherche un moment, pas un lieu.",
+                    ...draftUserProvidedContent,
+                  },
+                ],
+                correctOptionId: "questions-a1-lesson-ndahu-context-where",
+                ...draftUserProvidedContent,
+              },
+              {
+                id: "questions-a1-lesson-ndahu-fill-blank",
+                type: "exercise",
+                interactionType: "answer_card_grid",
+                exerciseType: "fill_blank",
+                title: "Phrase à compléter",
+                prompt: "Kassim nge ______ ?",
+                options: [
+                  {
+                    id: "questions-a1-lesson-ndahu-fill-blank-ndahu",
+                    text: "Ndahu",
+                    isCorrect: true,
+                    explanation:
+                      "Ndahu est utilisé pour demander où se trouve une personne, une chose ou un lieu.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndahu-fill-blank-ndi",
+                    text: "Ndi",
+                    explanation:
+                      "Ndahu est utilisé pour demander où se trouve une personne, une chose ou un lieu.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndahu-fill-blank-zabari",
+                    text: "Zabari",
+                    explanation:
+                      "Ndahu est utilisé pour demander où se trouve une personne, une chose ou un lieu.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndahu-fill-blank-ndo",
+                    text: "Ndo",
+                    explanation:
+                      "Ndahu est utilisé pour demander où se trouve une personne, une chose ou un lieu.",
+                    ...draftUserProvidedContent,
+                  },
+                ],
+                correctOptionId: "questions-a1-lesson-ndahu-fill-blank-ndahu",
+                feedbackExplanation:
+                  "Ndahu est utilisé pour demander où se trouve une personne, une chose ou un lieu.",
+                ...draftUserProvidedContent,
+              },
+              {
+                id: "questions-a1-lesson-ndahu-translation-target",
+                type: "exercise",
+                interactionType: "letter_builder",
+                exerciseType: "translation_to_target",
+                title: "Traduction français vers shiKomori",
+                instruction: "Traduis en shiKomori : Où est Kassim ?",
+                sentenceBefore: "Kassim nge",
+                sentenceAfter: "?",
+                letterBank: ["N", "D", "A", "H", "U", "I", "B"],
+                expectedAnswer: "NDAHU",
+                slotCount: 5,
+                completedText: "Kassim nge ndahu?",
+                correctConstructionText: "Kassim nge ndahu?",
+                explanation:
+                  "Tu as construit “ndahu”, le mot utilisé ici pour demander où se trouve Kassim.",
+                ...draftUserProvidedContent,
+              },
+              {
+                id: "questions-a1-lesson-ndahu-direct-thinking",
+                type: "exercise",
+                exerciseType: "direct_thinking",
+                title: "Pensée directe",
+                prompt:
+                  "Kassim est absent. Une personne le cherche et veut demander où il se trouve.",
+                question: "Que doit-elle dire ?",
+                options: [
+                  {
+                    id: "questions-a1-lesson-ndahu-direct-thinking-correct",
+                    text: "Kassim nge ndahu?",
+                    isCorrect: true,
+                    exampleId: "questions-a1-example-ndahu-kassim",
+                    explanation:
+                      "La situation demande où se trouve Kassim.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndahu-direct-thinking-lewo",
+                    text: "Lewo ndi?",
+                    exampleId: "questions-a1-example-ndi-lewo",
+                    explanation:
+                      "Cette question concerne le jour ou le moment.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndahu-direct-thinking-zabari",
+                    text: "Zabari?",
+                    exampleId: "questions-a1-example-zabari-simple",
+                    explanation:
+                      "Cette question sert à demander pourquoi.",
+                    ...draftUserProvidedContent,
+                  },
+                ],
+                correctOptionId:
+                  "questions-a1-lesson-ndahu-direct-thinking-correct",
+                ...draftUserProvidedContent,
+              },
+            ],
+            result: {
+              title: "Leçon terminée",
+              xpPerCorrectAnswer: 10,
+              thresholds: [
+                {
+                  minPercentage: 80,
+                  label: "Maîtrisé",
+                },
+                {
+                  minPercentage: 60,
+                  label: "En acquisition",
+                },
+                {
+                  minPercentage: 0,
+                  label: "À retravailler",
+                },
+              ],
+            },
+            ...draftUserProvidedContent,
+          },
           examples: [
             {
               id: "questions-a1-example-ndahu-simple",

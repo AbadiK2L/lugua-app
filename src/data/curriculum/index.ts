@@ -1,4 +1,5 @@
 export { shikomoriQuestionsA1Assessment } from "./shikomori/questions-a1-assessment";
+export { findConceptDetails, findExampleById } from "./helpers";
 export {
   shikomoriLanguage,
   shikomoriQuestionsA1Chapter,

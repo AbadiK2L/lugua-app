@@ -20,6 +20,8 @@ export type ExerciseType =
 
 export type ValidationStatus = "draft" | "reviewed" | "validated";
 
+export type AudioStatus = "missing" | "draft" | "validated";
+
 export type ContentSource =
   | "user_provided"
   | "orelc"
@@ -29,6 +31,9 @@ export type ContentSource =
 export type LinguisticContent = {
   validationStatus: ValidationStatus;
   source: ContentSource;
+  audioUrl?: string;
+  audioStatus: AudioStatus;
+  speaker?: string;
   dialect?: string;
   requiresLinguisticReview?: boolean;
 };
@@ -88,6 +93,7 @@ export type Concept = LinguisticContent & {
   examples: LinguisticExample[];
   contexts: LearningContext[];
   exercises: Exercise[];
+  interactiveLesson?: InteractiveLesson;
 };
 
 export type LinguisticExample = LinguisticContent & {
@@ -174,6 +180,94 @@ export type Assessment = LinguisticContent & {
   supportsAutomaticCorrection: boolean;
   scoreCategories: AssessmentScoreCategory[];
   sections: AssessmentSection[];
+};
+
+export type InteractiveLessonOption = LinguisticContent & {
+  id: string;
+  text: string;
+  isCorrect?: boolean;
+  exampleId?: string;
+  explanation: string;
+};
+
+export type InteractiveLessonObjectiveStep = LinguisticContent & {
+  id: string;
+  type: "objective";
+  title: string;
+  objective: string;
+  actionLabel: string;
+};
+
+export type InteractiveLessonDiscoveryStep = LinguisticContent & {
+  id: string;
+  type: "discovery";
+  title: string;
+  exampleIds: string[];
+  audioLabel: string;
+  actionLabel: string;
+};
+
+export type InteractiveLessonChoiceLayout = "option_list" | "answer_card_grid";
+
+export type InteractiveLessonChoiceExerciseStep = LinguisticContent & {
+  id: string;
+  type: "exercise";
+  exerciseType: ExerciseType;
+  interactionType?: InteractiveLessonChoiceLayout;
+  title: string;
+  instruction?: string;
+  prompt: string;
+  question?: string;
+  options: InteractiveLessonOption[];
+  correctOptionId: string;
+  feedbackExplanation?: string;
+};
+
+export type InteractiveLessonLetterBuilderStep = LinguisticContent & {
+  id: string;
+  type: "exercise";
+  interactionType: "letter_builder";
+  exerciseType: "translation_to_target";
+  title: string;
+  instruction: string;
+  sentenceBefore: string;
+  sentenceAfter: string;
+  letterBank: string[];
+  expectedAnswer: string;
+  slotCount: number;
+  completedText: string;
+  correctConstructionText: string;
+  explanation: string;
+};
+
+export type InteractiveLessonExerciseStep =
+  | InteractiveLessonChoiceExerciseStep
+  | InteractiveLessonLetterBuilderStep;
+
+export type InteractiveLessonStep =
+  | InteractiveLessonObjectiveStep
+  | InteractiveLessonDiscoveryStep
+  | InteractiveLessonExerciseStep;
+
+export type InteractiveLessonResultThreshold = {
+  minPercentage: number;
+  label: string;
+};
+
+export type InteractiveLessonResult = {
+  title: string;
+  xpPerCorrectAnswer: number;
+  thresholds: InteractiveLessonResultThreshold[];
+};
+
+export type InteractiveLesson = LinguisticContent & {
+  id: string;
+  conceptId: string;
+  title: string;
+  enabled: boolean;
+  unavailableMessage: string;
+  steps: InteractiveLessonStep[];
+  result: InteractiveLessonResult;
 };
 
 export type MasteryProgressScope =

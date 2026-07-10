@@ -3,6 +3,7 @@ import type { Assessment, LinguisticContent } from "../../../types/learning";
 const draftUserProvidedContent = {
   validationStatus: "draft",
   source: "user_provided",
+  audioStatus: "missing",
   dialect: "unspecified",
 } as const satisfies LinguisticContent;
 
