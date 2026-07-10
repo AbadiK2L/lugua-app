@@ -118,6 +118,7 @@ export function LetterBuilder({
     <View style={styles.container}>
       <View style={styles.sentenceRow}>
         <Text style={styles.sentenceText}>{sentenceBefore}</Text>
+        <Text style={styles.bracketText}>[</Text>
         <View style={styles.slots}>
           {placedLetters.map((letter, index) => (
             <TouchableOpacity
@@ -135,6 +136,7 @@ export function LetterBuilder({
             </TouchableOpacity>
           ))}
         </View>
+        <Text style={styles.bracketText}>]</Text>
         <Text style={styles.sentenceText}>{sentenceAfter}</Text>
       </View>
 
@@ -214,6 +216,12 @@ const styles = StyleSheet.create({
   },
   sentenceText: {
     color: "#f8fafc",
+    fontSize: 22,
+    fontWeight: "900",
+    lineHeight: 30,
+  },
+  bracketText: {
+    color: "#94a3b8",
     fontSize: 22,
     fontWeight: "900",
     lineHeight: 30,

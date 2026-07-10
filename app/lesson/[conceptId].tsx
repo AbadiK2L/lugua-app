@@ -171,6 +171,7 @@ function DiscoveryStep({ lesson, step, onContinue }: DiscoveryStepProps) {
 
   const mainExample = examples[0];
   const supportingExample = examples[1];
+  const isAudioDisabled = step.audioStatus === "missing" || !step.audioUrl;
 
   return (
     <View style={styles.card}>
@@ -191,7 +192,11 @@ function DiscoveryStep({ lesson, step, onContinue }: DiscoveryStepProps) {
         </View>
       ) : null}
 
-      <TouchableOpacity activeOpacity={1} disabled style={styles.audioButton}>
+      <TouchableOpacity
+        activeOpacity={isAudioDisabled ? 1 : 0.85}
+        disabled={isAudioDisabled}
+        style={[styles.audioButton, isAudioDisabled && styles.disabledAudioButton]}
+      >
         <Text style={styles.audioButtonText}>{step.audioLabel}</Text>
       </TouchableOpacity>
 
@@ -613,6 +618,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 16,
+  },
+  disabledAudioButton: {
     opacity: 0.72,
   },
   audioButtonText: {
