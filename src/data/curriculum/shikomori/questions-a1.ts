@@ -1,4 +1,10 @@
-import type { Chapter, LinguisticContent } from "../../../types/learning";
+import type {
+  Chapter,
+  Language,
+  LanguageLevel,
+  LinguisticContent,
+  Skill,
+} from "../../../types/learning";
 import { shikomoriQuestionsA1Assessment } from "./questions-a1-assessment";
 
 const draftUserProvidedContent = {
@@ -679,4 +685,34 @@ export const shikomoriQuestionsA1Chapter: Chapter = {
   ],
   assessments: [shikomoriQuestionsA1Assessment],
   ...draftUserProvidedContent,
+};
+
+export const shikomoriQuestionsA1Skill: Skill = {
+  id: "poser-une-question",
+  languageId: "shikomori",
+  levelId: "shikomori-a1",
+  title: "Poser une question",
+  chapters: [shikomoriQuestionsA1Chapter],
+};
+
+export const shikomoriQuestionsA1Level: LanguageLevel = {
+  id: "shikomori-a1",
+  languageId: "shikomori",
+  level: "A1",
+  title: "A1",
+  skills: [shikomoriQuestionsA1Skill],
+};
+
+export const shikomoriLanguage: Language = {
+  id: "shikomori",
+  name: "shiKomori",
+  autonym: "shiKomori",
+  levels: [shikomoriQuestionsA1Level],
+};
+
+export const shikomoriQuestionsA1Path = {
+  language: shikomoriLanguage,
+  level: shikomoriQuestionsA1Level,
+  skill: shikomoriQuestionsA1Skill,
+  chapter: shikomoriQuestionsA1Chapter,
 };
