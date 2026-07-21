@@ -1708,225 +1708,37 @@ export const shikomoriQuestionsA1Chapter: Chapter = {
           blockId: "questions-a1-block-reason",
           key: "Zabari",
           title: "Zabari",
-          interactiveLesson: {
-            id: "questions-a1-lesson-zabari",
-            conceptId: "questions-a1-concept-zabari",
-            title: "Leçon interactive - Zabari",
-            enabled: true,
-            unavailableMessage:
-              "Cette leçon interactive sera bientôt disponible.",
-            steps: [
+          lessonConfig: {
+            template: "single_meaning",
+            conceptKind: "question_word",
+            primaryExampleId: "questions-a1-example-zabari-simple",
+            objectiveTitle: "Demander une raison",
+            objective: "Savoir utiliser Zabari pour demander pourquoi.",
+            usages: [
               {
-                id: "questions-a1-lesson-zabari-objective",
-                type: "objective",
-                title: "Demander une raison",
-                objective: "Savoir utiliser Zabari pour demander pourquoi.",
-                actionLabel: "Découvrir",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-zabari-discovery",
-                type: "discovery",
-                title: "Découverte",
+                id: "questions-a1-usage-zabari-reason",
+                meaning: "Pourquoi ?",
+                contextId: "questions-a1-context-zabari-reason",
                 exampleIds: ["questions-a1-example-zabari-simple"],
                 explanation:
                   "Zabari sert à demander la raison d’une action ou d’une situation.",
-                audioLabel: "Audio bientôt disponible",
-                actionLabel: "Continuer",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-zabari-context",
-                type: "exercise",
-                exerciseType: "context_choice",
-                title: "Reconnaissance du contexte",
-                prompt: "Dans quelle situation utiliserais-tu « Zabari » ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-zabari-context-correct",
-                    text: "Tu veux connaître la raison d’une action.",
-                    isCorrect: true,
-                    explanation:
-                      "Zabari sert à demander la raison d’une action ou d’une situation.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-context-place",
-                    text: "Tu veux savoir où se trouve une personne.",
-                    explanation:
-                      "Cette situation demande un lieu, pas une raison.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-context-person",
-                    text: "Tu veux connaître l’identité d’une personne.",
-                    explanation:
-                      "Cette situation demande une identité, pas une raison.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-zabari-context-correct",
-                feedbackExplanation:
-                  "Zabari sert à demander la raison d’une action ou d’une situation.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-zabari-meaning",
-                type: "exercise",
-                interactionType: "answer_card_grid",
-                exerciseType: "recognition",
-                title: "Reconnaître le sens",
-                prompt: "Que signifie « Zabari ? » ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-zabari-meaning-correct",
-                    text: "Pourquoi ?",
-                    isCorrect: true,
-                    explanation: "Zabari signifie « pourquoi ».",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-meaning-when",
-                    text: "Quand ?",
-                    explanation: "Zabari signifie « pourquoi ».",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-meaning-who",
-                    text: "Qui ?",
-                    explanation: "Zabari signifie « pourquoi ».",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-meaning-where",
-                    text: "Où ?",
-                    explanation: "Zabari signifie « pourquoi ».",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-zabari-meaning-correct",
-                feedbackExplanation: "Zabari signifie « pourquoi ».",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-zabari-fill-blank",
-                type: "exercise",
-                interactionType: "answer_card_grid",
-                exerciseType: "fill_blank",
-                title: "Phrase à compléter",
-                prompt: "______ ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-zabari-fill-blank-correct",
-                    text: "Zabari",
-                    isCorrect: true,
-                    explanation: "Zabari complète la question pour demander pourquoi.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-fill-blank-ndahu",
-                    text: "Ndahu",
-                    explanation: "Zabari complète la question pour demander pourquoi.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-fill-blank-ndo",
-                    text: "Ndo",
-                    explanation: "Zabari complète la question pour demander pourquoi.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-fill-blank-ndi",
-                    text: "Ndi",
-                    explanation: "Zabari complète la question pour demander pourquoi.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-zabari-fill-blank-correct",
-                feedbackExplanation:
-                  "Zabari complète la question pour demander pourquoi.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-zabari-translation-target",
-                type: "exercise",
-                interactionType: "letter_builder",
-                exerciseType: "translation_to_target",
-                title: "Construction avec lettres",
-                instruction: "Construis le mot qui signifie « pourquoi ».",
-                sentenceBefore: "",
-                sentenceAfter: "?",
-                letterBank: ["Z", "A", "B", "A", "R", "I", "N", "O"],
-                expectedAnswer: "ZABARI",
-                slotCount: 6,
-                completedText: "Zabari?",
-                correctConstructionText: "Zabari?",
-                explanation: "Zabari sert à demander pourquoi.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-zabari-direct-thinking",
-                type: "exercise",
-                exerciseType: "direct_thinking",
-                title: "Pensée directe",
-                prompt:
-                  "Une personne fait quelque chose et tu veux connaître sa raison.",
-                question: "Quel mot dois-tu utiliser ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-zabari-direct-thinking-correct",
-                    text: "Zabari?",
-                    isCorrect: true,
-                    exampleId: "questions-a1-example-zabari-simple",
-                    explanation: "Zabari sert à demander pourquoi.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-direct-thinking-ndahu",
-                    text: "Ndahu?",
-                    exampleId: "questions-a1-example-ndahu-simple",
-                    explanation: "Ndahu sert à demander où.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-direct-thinking-ndo",
-                    text: "Ndo?",
-                    exampleId: "questions-a1-example-ndo-simple",
-                    explanation: "Ndo sert à demander qui.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-zabari-direct-thinking-ndi",
-                    text: "Ndi?",
-                    exampleId: "questions-a1-example-ndi-simple",
-                    explanation: "Ndi sert à demander quand.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId:
-                  "questions-a1-lesson-zabari-direct-thinking-correct",
-                ...draftUserProvidedContent,
+                situationPrompt:
+                  "Tu veux connaître la raison d’une action.",
               },
             ],
-            result: {
-              title: "Leçon terminée",
-              xpPerCorrectAnswer: 10,
-              thresholds: [
-                {
-                  minPercentage: 80,
-                  label: "Maîtrisé",
-                },
-                {
-                  minPercentage: 60,
-                  label: "En acquisition",
-                },
-                {
-                  minPercentage: 0,
-                  label: "À retravailler",
-                },
-              ],
+            exercises: {
+              recognition: true,
+              contextChoice: true,
+              fillBlank: true,
+              letterBuilder: true,
+              directThinking: true,
             },
-            ...draftUserProvidedContent,
+            distractorConceptIds: [
+              "questions-a1-concept-ndahu",
+              "questions-a1-concept-ndo",
+              "questions-a1-concept-ndi",
+            ],
+            letterDistractors: ["N", "O"],
           },
           examples: [
             {

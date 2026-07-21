@@ -7,7 +7,11 @@ import { AnswerOption } from "@/src/components/learning/AnswerOption";
 import { LessonFeedback } from "@/src/components/learning/LessonFeedback";
 import { LessonHeader } from "@/src/components/learning/LessonHeader";
 import { LetterBuilder } from "@/src/components/learning/LetterBuilder";
-import { findConceptDetails, findExampleById } from "@/src/data/curriculum";
+import {
+  findConceptDetails,
+  findExampleById,
+  resolveInteractiveLesson,
+} from "@/src/data/curriculum";
 import type {
   InteractiveLesson,
   InteractiveLessonChoiceExerciseStep,
@@ -403,16 +407,18 @@ export default function LessonScreen() {
   const params = useLocalSearchParams<{ conceptId?: string | string[] }>();
   const conceptId = normalizeParam(params.conceptId);
   const details = findConceptDetails(conceptId);
+  const concept = details?.concept;
+  const chapter = details?.chapter;
+  const lesson = useMemo(
+    () => (concept && chapter ? resolveInteractiveLesson(concept, chapter) : undefined),
+    [concept, chapter],
+  );
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [isValidated, setIsValidated] = useState(false);
   const [score, setScore] = useState(0);
 
-  const lesson = details?.concept.interactiveLesson;
-  const exerciseSteps = useMemo(
-    () => (lesson ? getExerciseSteps(lesson) : []),
-    [lesson],
-  );
+  const exerciseSteps = lesson ? getExerciseSteps(lesson) : [];
 
   if (!details || !conceptId) {
     return renderMissingConcept();

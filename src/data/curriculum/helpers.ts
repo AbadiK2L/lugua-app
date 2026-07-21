@@ -8,6 +8,7 @@ import type {
 } from "../../types/learning";
 
 export type ConceptDetails = {
+  chapter: Chapter;
   block: LearningBlock;
   concept: Concept;
 };
@@ -22,11 +23,14 @@ export function findConceptDetails(conceptId: string | undefined): ConceptDetail
     return undefined;
   }
 
-  for (const block of shikomoriQuestionsA1Path.chapter.blocks) {
+  const chapter = shikomoriQuestionsA1Path.chapter;
+
+  for (const block of chapter.blocks) {
     const concept = block.concepts.find((candidate) => candidate.id === conceptId);
 
     if (concept) {
       return {
+        chapter,
         block,
         concept,
       };

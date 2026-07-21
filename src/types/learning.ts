@@ -30,6 +30,56 @@ export type ContentSource =
   | "teacher"
   | "editorial";
 
+export type LearningConceptKind =
+  | "vocabulary"
+  | "question_word"
+  | "expression"
+  | "sentence_pattern"
+  | "grammar_rule";
+
+export type LessonTemplateId = "single_meaning" | "contextual_meanings";
+
+export type LessonExerciseGenerationConfig = {
+  recognition?: boolean;
+  contextChoice?: boolean;
+  fillBlank?: boolean;
+  letterBuilder?: boolean;
+  directThinking?: boolean;
+};
+
+export type ConceptUsage = {
+  id: string;
+  meaning: string;
+  contextId: string;
+  exampleIds: string[];
+  explanation: string;
+  situationPrompt: string;
+};
+
+export type LessonGenerationBaseConfig = {
+  conceptKind: LearningConceptKind;
+  primaryExampleId: string;
+  objectiveTitle?: string;
+  objective?: string;
+  exercises?: LessonExerciseGenerationConfig;
+  distractorConceptIds?: string[];
+  letterDistractors?: string[];
+};
+
+export type SingleMeaningLessonConfig = LessonGenerationBaseConfig & {
+  template: "single_meaning";
+  usages: [ConceptUsage];
+};
+
+export type ContextualMeaningsLessonConfig = LessonGenerationBaseConfig & {
+  template: "contextual_meanings";
+  usages: [ConceptUsage, ConceptUsage, ...ConceptUsage[]];
+};
+
+export type LessonGenerationConfig =
+  | SingleMeaningLessonConfig
+  | ContextualMeaningsLessonConfig;
+
 export type LinguisticContent = {
   validationStatus: ValidationStatus;
   source: ContentSource;
@@ -95,6 +145,7 @@ export type Concept = LinguisticContent & {
   examples: LinguisticExample[];
   contexts: LearningContext[];
   exercises: Exercise[];
+  lessonConfig?: LessonGenerationConfig;
   interactiveLesson?: InteractiveLesson;
 };
 

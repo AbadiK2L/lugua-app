@@ -35,6 +35,7 @@ export function LetterBuilder({
   onValidation,
   onContinue,
 }: LetterBuilderProps) {
+  const lettersSignature = letters.join("\u0000");
   const letterItems = useMemo(
     () =>
       letters.map((letter, index) => ({
@@ -50,7 +51,7 @@ export function LetterBuilder({
 
   useEffect(() => {
     setPlacedLetters(Array.from({ length: slotCount }, () => null));
-  }, [expectedAnswer, letters, slotCount]);
+  }, [expectedAnswer, lettersSignature, slotCount]);
 
   const builtAnswer = placedLetters.map((letter) => letter?.value ?? "").join("");
   const normalizedBuiltAnswer = builtAnswer.toLocaleLowerCase();
