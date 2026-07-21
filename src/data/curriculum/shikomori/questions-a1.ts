@@ -305,6 +305,188 @@ export const shikomoriQuestionsA1Chapter: Chapter = {
           blockId: "questions-a1-block-person",
           key: "Ndo",
           title: "Ndo",
+          interactiveLesson: {
+            id: "questions-a1-lesson-ndo",
+            conceptId: "questions-a1-concept-ndo",
+            title: "Leçon interactive - Ndo",
+            enabled: true,
+            unavailableMessage:
+              "Cette leçon interactive sera bientôt disponible.",
+            steps: [
+              {
+                id: "questions-a1-lesson-ndo-objective",
+                type: "objective",
+                title: "Demander l’identité d’une personne",
+                objective: "Savoir demander qui est une personne.",
+                actionLabel: "Découvrir",
+                ...draftUserProvidedContent,
+              },
+              {
+                id: "questions-a1-lesson-ndo-discovery",
+                type: "discovery",
+                title: "Découverte",
+                exampleIds: [
+                  "questions-a1-example-ndo-we",
+                  "questions-a1-example-ndo-simple",
+                ],
+                audioLabel: "Audio bientôt disponible",
+                actionLabel: "Continuer",
+                ...draftUserProvidedContent,
+              },
+              {
+                id: "questions-a1-lesson-ndo-context",
+                type: "exercise",
+                exerciseType: "context_choice",
+                title: "Reconnaissance du contexte",
+                prompt: "Dans quelle situation utiliserais-tu « Ndo » ?",
+                options: [
+                  {
+                    id: "questions-a1-lesson-ndo-context-place",
+                    text: "Tu veux savoir où se trouve une personne.",
+                    explanation:
+                      "Cette situation cherche un lieu, pas une identité.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndo-context-identity",
+                    text: "Tu veux connaître l’identité d’une personne.",
+                    isCorrect: true,
+                    explanation:
+                      "Ndo sert à demander qui est une personne.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndo-context-time",
+                    text: "Tu veux savoir quand une personne arrivera.",
+                    explanation:
+                      "Cette situation cherche un moment, pas une identité.",
+                    ...draftUserProvidedContent,
+                  },
+                ],
+                correctOptionId: "questions-a1-lesson-ndo-context-identity",
+                ...draftUserProvidedContent,
+              },
+              {
+                id: "questions-a1-lesson-ndo-fill-blank",
+                type: "exercise",
+                interactionType: "answer_card_grid",
+                exerciseType: "fill_blank",
+                title: "Phrase à compléter",
+                prompt: "We ______ ?",
+                options: [
+                  {
+                    id: "questions-a1-lesson-ndo-fill-blank-ndo",
+                    text: "Ndo",
+                    isCorrect: true,
+                    explanation:
+                      "Ndo est utilisé pour demander qui est une personne.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndo-fill-blank-ndahu",
+                    text: "Ndahu",
+                    explanation:
+                      "Ndo est utilisé pour demander qui est une personne.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndo-fill-blank-ndi",
+                    text: "Ndi",
+                    explanation:
+                      "Ndo est utilisé pour demander qui est une personne.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndo-fill-blank-zabari",
+                    text: "Zabari",
+                    explanation:
+                      "Ndo est utilisé pour demander qui est une personne.",
+                    ...draftUserProvidedContent,
+                  },
+                ],
+                correctOptionId: "questions-a1-lesson-ndo-fill-blank-ndo",
+                feedbackExplanation:
+                  "Ndo est utilisé pour demander qui est une personne.",
+                ...draftUserProvidedContent,
+              },
+              {
+                id: "questions-a1-lesson-ndo-translation-target",
+                type: "exercise",
+                interactionType: "letter_builder",
+                exerciseType: "translation_to_target",
+                title: "Traduction français vers shiKomori",
+                instruction: "Traduis en shiKomori : Qui es-tu ?",
+                sentenceBefore: "We",
+                sentenceAfter: "?",
+                letterBank: ["N", "D", "O", "A", "I"],
+                expectedAnswer: "NDO",
+                slotCount: 3,
+                completedText: "We ndo?",
+                correctConstructionText: "We ndo?",
+                explanation:
+                  "Tu as construit “ndo”, le mot utilisé ici pour demander qui est une personne.",
+                ...draftUserProvidedContent,
+              },
+              {
+                id: "questions-a1-lesson-ndo-direct-thinking",
+                type: "exercise",
+                exerciseType: "direct_thinking",
+                title: "Pensée directe",
+                prompt:
+                  "Une personne se présente devant toi. Tu veux lui demander qui elle est.",
+                question: "Que dois-tu dire ?",
+                options: [
+                  {
+                    id: "questions-a1-lesson-ndo-direct-thinking-correct",
+                    text: "We ndo?",
+                    isCorrect: true,
+                    exampleId: "questions-a1-example-ndo-we",
+                    explanation:
+                      "Cette question demande qui est la personne.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndo-direct-thinking-ndahu",
+                    text: "Kassim nge ndahu?",
+                    exampleId: "questions-a1-example-ndahu-kassim",
+                    explanation:
+                      "Cette question demande où se trouve Kassim.",
+                    ...draftUserProvidedContent,
+                  },
+                  {
+                    id: "questions-a1-lesson-ndo-direct-thinking-lewo",
+                    text: "Lewo ndi?",
+                    exampleId: "questions-a1-example-ndi-lewo",
+                    explanation:
+                      "Cette question concerne le jour ou le moment.",
+                    ...draftUserProvidedContent,
+                  },
+                ],
+                correctOptionId:
+                  "questions-a1-lesson-ndo-direct-thinking-correct",
+                ...draftUserProvidedContent,
+              },
+            ],
+            result: {
+              title: "Leçon terminée",
+              xpPerCorrectAnswer: 10,
+              thresholds: [
+                {
+                  minPercentage: 80,
+                  label: "Maîtrisé",
+                },
+                {
+                  minPercentage: 60,
+                  label: "En acquisition",
+                },
+                {
+                  minPercentage: 0,
+                  label: "À retravailler",
+                },
+              ],
+            },
+            ...draftUserProvidedContent,
+          },
           examples: [
             {
               id: "questions-a1-example-ndo-simple",

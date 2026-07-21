@@ -20,7 +20,6 @@ import type {
   InteractiveLessonStep,
 } from "@/src/types/learning";
 
-const NDAHU_CONCEPT_ID = "questions-a1-concept-ndahu";
 const UNAVAILABLE_MESSAGE = "Cette leçon interactive sera bientôt disponible.";
 
 function normalizeParam(value: string | string[] | undefined) {
@@ -417,7 +416,7 @@ export default function LessonScreen() {
     return renderMissingConcept();
   }
 
-  if (conceptId !== NDAHU_CONCEPT_ID || !lesson?.enabled) {
+  if (!lesson?.enabled) {
     return renderUnavailableLesson(lesson?.unavailableMessage ?? UNAVAILABLE_MESSAGE);
   }
 
