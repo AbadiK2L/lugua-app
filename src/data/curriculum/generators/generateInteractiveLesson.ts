@@ -113,6 +113,12 @@ function stripFinalPunctuation(text: string) {
   return text.trim().replace(/[.?!]+$/g, "");
 }
 
+function getDiscoveryExampleIds(primaryExampleId: string, exampleIds: string[]) {
+  return [primaryExampleId, ...exampleIds].filter(
+    (exampleId, index, allExampleIds) => allExampleIds.indexOf(exampleId) === index,
+  );
+}
+
 function compactText(parts: string[]) {
   return parts
     .map((part) => part.trim())
@@ -436,6 +442,9 @@ function buildDirectThinkingStep(
     ),
   );
   const options = uniqueByText([correctOption, ...distractorOptions]);
+  const isStandaloneQuestionWord =
+    stripFinalPunctuation(primaryExample.targetLanguageText).toLocaleLowerCase() ===
+    concept.key.toLocaleLowerCase();
 
   return {
     id: `${concept.id}-generated-direct-thinking`,
@@ -443,7 +452,7 @@ function buildDirectThinkingStep(
     exerciseType: "direct_thinking",
     title: "Pensée directe",
     prompt: config.usages[0].situationPrompt,
-    question: "Quel mot dois-tu utiliser ?",
+    question: isStandaloneQuestionWord ? "Quel mot dois-tu utiliser ?" : "Que dois-tu dire ?",
     options,
     correctOptionId: correctOption.id,
     feedbackExplanation: usageExplanation,
@@ -462,6 +471,10 @@ function generateSingleMeaningLesson(
   const usageContext = findContextInConcept(concept, usage.contextId);
   const usageExamplesExist = usage.exampleIds.every((exampleId) =>
     findExampleInConcept(concept, exampleId),
+  );
+  const discoveryExampleIds = getDiscoveryExampleIds(
+    config.primaryExampleId,
+    usage.exampleIds,
   );
   const distractors = getDistractorDetails(chapter, config.distractorConceptIds);
 
@@ -486,7 +499,7 @@ function generateSingleMeaningLesson(
       id: `${concept.id}-generated-discovery`,
       type: "discovery",
       title: "Découverte",
-      exampleIds: [primaryExample.id],
+      exampleIds: discoveryExampleIds,
       explanation: usageExplanation,
       audioLabel: "Audio bientôt disponible",
       actionLabel: "Continuer",

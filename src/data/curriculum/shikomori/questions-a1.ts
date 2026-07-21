@@ -34,187 +34,39 @@ export const shikomoriQuestionsA1Chapter: Chapter = {
           blockId: "questions-a1-block-place",
           key: "Ndahu",
           title: "Ndahu",
-          interactiveLesson: {
-            id: "questions-a1-lesson-ndahu",
-            conceptId: "questions-a1-concept-ndahu",
-            title: "Leçon interactive - Ndahu",
-            enabled: true,
-            unavailableMessage:
-              "Cette leçon interactive sera bientôt disponible.",
-            steps: [
+          lessonConfig: {
+            template: "single_meaning",
+            conceptKind: "question_word",
+            primaryExampleId: "questions-a1-example-ndahu-kassim",
+            objectiveTitle: "Objectif",
+            objective: "Savoir demander où se trouve une personne.",
+            usages: [
               {
-                id: "questions-a1-lesson-ndahu-objective",
-                type: "objective",
-                title: "Objectif",
-                objective: "Savoir demander où se trouve une personne.",
-                actionLabel: "Découvrir",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndahu-discovery",
-                type: "discovery",
-                title: "Découverte",
+                id: "questions-a1-usage-ndahu-place",
+                meaning: "Où ?",
+                contextId: "questions-a1-context-ndahu-place",
                 exampleIds: [
                   "questions-a1-example-ndahu-kassim",
                   "questions-a1-example-ndahu-simple",
                 ],
-                audioLabel: "Audio bientôt disponible",
-                actionLabel: "Continuer",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndahu-context",
-                type: "exercise",
-                exerciseType: "context_choice",
-                title: "Reconnaissance du contexte",
-                prompt: "Dans quelle situation utiliserais-tu « Ndahu » ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-ndahu-context-why",
-                    text: "Tu veux savoir pourquoi Kassim est parti.",
-                    explanation:
-                      "Cette situation cherche une raison, pas un lieu.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndahu-context-where",
-                    text: "Tu veux savoir où se trouve Kassim.",
-                    isCorrect: true,
-                    explanation:
-                      "Ndahu sert à demander où se trouve une personne ou un élément.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndahu-context-when",
-                    text: "Tu veux savoir quand Kassim viendra.",
-                    explanation:
-                      "Cette situation cherche un moment, pas un lieu.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-ndahu-context-where",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndahu-fill-blank",
-                type: "exercise",
-                interactionType: "answer_card_grid",
-                exerciseType: "fill_blank",
-                title: "Phrase à compléter",
-                prompt: "Kassim nge ______ ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-ndahu-fill-blank-ndahu",
-                    text: "Ndahu",
-                    isCorrect: true,
-                    explanation:
-                      "Ndahu est utilisé pour demander où se trouve une personne, une chose ou un lieu.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndahu-fill-blank-ndi",
-                    text: "Ndi",
-                    explanation:
-                      "Ndahu est utilisé pour demander où se trouve une personne, une chose ou un lieu.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndahu-fill-blank-zabari",
-                    text: "Zabari",
-                    explanation:
-                      "Ndahu est utilisé pour demander où se trouve une personne, une chose ou un lieu.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndahu-fill-blank-ndo",
-                    text: "Ndo",
-                    explanation:
-                      "Ndahu est utilisé pour demander où se trouve une personne, une chose ou un lieu.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-ndahu-fill-blank-ndahu",
-                feedbackExplanation:
-                  "Ndahu est utilisé pour demander où se trouve une personne, une chose ou un lieu.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndahu-translation-target",
-                type: "exercise",
-                interactionType: "letter_builder",
-                exerciseType: "translation_to_target",
-                title: "Traduction français vers shiKomori",
-                instruction: "Traduis en shiKomori : Où est Kassim ?",
-                sentenceBefore: "Kassim nge",
-                sentenceAfter: "?",
-                letterBank: ["N", "D", "A", "H", "U", "I", "B"],
-                expectedAnswer: "NDAHU",
-                slotCount: 5,
-                completedText: "Kassim nge ndahu?",
-                correctConstructionText: "Kassim nge ndahu?",
                 explanation:
-                  "Tu as construit “ndahu”, le mot utilisé ici pour demander où se trouve Kassim.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndahu-direct-thinking",
-                type: "exercise",
-                exerciseType: "direct_thinking",
-                title: "Pensée directe",
-                prompt:
-                  "Kassim est absent. Une personne le cherche et veut demander où il se trouve.",
-                question: "Que doit-elle dire ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-ndahu-direct-thinking-correct",
-                    text: "Kassim nge ndahu?",
-                    isCorrect: true,
-                    exampleId: "questions-a1-example-ndahu-kassim",
-                    explanation:
-                      "La situation demande où se trouve Kassim.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndahu-direct-thinking-lewo",
-                    text: "Lewo ndi?",
-                    exampleId: "questions-a1-example-ndi-lewo",
-                    explanation:
-                      "Cette question concerne le jour ou le moment.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndahu-direct-thinking-zabari",
-                    text: "Zabari?",
-                    exampleId: "questions-a1-example-zabari-simple",
-                    explanation:
-                      "Cette question sert à demander pourquoi.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId:
-                  "questions-a1-lesson-ndahu-direct-thinking-correct",
-                ...draftUserProvidedContent,
+                  "Ndahu sert à demander où se trouve une personne ou un élément.",
+                situationPrompt: "Tu veux savoir où se trouve Kassim.",
               },
             ],
-            result: {
-              title: "Leçon terminée",
-              xpPerCorrectAnswer: 10,
-              thresholds: [
-                {
-                  minPercentage: 80,
-                  label: "Maîtrisé",
-                },
-                {
-                  minPercentage: 60,
-                  label: "En acquisition",
-                },
-                {
-                  minPercentage: 0,
-                  label: "À retravailler",
-                },
-              ],
+            exercises: {
+              recognition: false,
+              contextChoice: true,
+              fillBlank: true,
+              letterBuilder: true,
+              directThinking: true,
             },
-            ...draftUserProvidedContent,
+            distractorConceptIds: [
+              "questions-a1-concept-ndo",
+              "questions-a1-concept-ndi",
+              "questions-a1-concept-zabari",
+            ],
+            letterDistractors: ["I", "B"],
           },
           examples: [
             {
@@ -305,187 +157,39 @@ export const shikomoriQuestionsA1Chapter: Chapter = {
           blockId: "questions-a1-block-person",
           key: "Ndo",
           title: "Ndo",
-          interactiveLesson: {
-            id: "questions-a1-lesson-ndo",
-            conceptId: "questions-a1-concept-ndo",
-            title: "Leçon interactive - Ndo",
-            enabled: true,
-            unavailableMessage:
-              "Cette leçon interactive sera bientôt disponible.",
-            steps: [
+          lessonConfig: {
+            template: "single_meaning",
+            conceptKind: "question_word",
+            primaryExampleId: "questions-a1-example-ndo-we",
+            objectiveTitle: "Demander l’identité d’une personne",
+            objective: "Savoir demander qui est une personne.",
+            usages: [
               {
-                id: "questions-a1-lesson-ndo-objective",
-                type: "objective",
-                title: "Demander l’identité d’une personne",
-                objective: "Savoir demander qui est une personne.",
-                actionLabel: "Découvrir",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndo-discovery",
-                type: "discovery",
-                title: "Découverte",
+                id: "questions-a1-usage-ndo-identity",
+                meaning: "Qui ?",
+                contextId: "questions-a1-context-ndo-identity",
                 exampleIds: [
                   "questions-a1-example-ndo-we",
                   "questions-a1-example-ndo-simple",
                 ],
-                audioLabel: "Audio bientôt disponible",
-                actionLabel: "Continuer",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndo-context",
-                type: "exercise",
-                exerciseType: "context_choice",
-                title: "Reconnaissance du contexte",
-                prompt: "Dans quelle situation utiliserais-tu « Ndo » ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-ndo-context-place",
-                    text: "Tu veux savoir où se trouve une personne.",
-                    explanation:
-                      "Cette situation cherche un lieu, pas une identité.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndo-context-identity",
-                    text: "Tu veux connaître l’identité d’une personne.",
-                    isCorrect: true,
-                    explanation:
-                      "Ndo sert à demander qui est une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndo-context-time",
-                    text: "Tu veux savoir quand une personne arrivera.",
-                    explanation:
-                      "Cette situation cherche un moment, pas une identité.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-ndo-context-identity",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndo-fill-blank",
-                type: "exercise",
-                interactionType: "answer_card_grid",
-                exerciseType: "fill_blank",
-                title: "Phrase à compléter",
-                prompt: "We ______ ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-ndo-fill-blank-ndo",
-                    text: "Ndo",
-                    isCorrect: true,
-                    explanation:
-                      "Ndo est utilisé pour demander qui est une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndo-fill-blank-ndahu",
-                    text: "Ndahu",
-                    explanation:
-                      "Ndo est utilisé pour demander qui est une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndo-fill-blank-ndi",
-                    text: "Ndi",
-                    explanation:
-                      "Ndo est utilisé pour demander qui est une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndo-fill-blank-zabari",
-                    text: "Zabari",
-                    explanation:
-                      "Ndo est utilisé pour demander qui est une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-ndo-fill-blank-ndo",
-                feedbackExplanation:
-                  "Ndo est utilisé pour demander qui est une personne.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndo-translation-target",
-                type: "exercise",
-                interactionType: "letter_builder",
-                exerciseType: "translation_to_target",
-                title: "Traduction français vers shiKomori",
-                instruction: "Traduis en shiKomori : Qui es-tu ?",
-                sentenceBefore: "We",
-                sentenceAfter: "?",
-                letterBank: ["N", "D", "O", "A", "I"],
-                expectedAnswer: "NDO",
-                slotCount: 3,
-                completedText: "We ndo?",
-                correctConstructionText: "We ndo?",
-                explanation:
-                  "Tu as construit “ndo”, le mot utilisé ici pour demander qui est une personne.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndo-direct-thinking",
-                type: "exercise",
-                exerciseType: "direct_thinking",
-                title: "Pensée directe",
-                prompt:
-                  "Une personne se présente devant toi. Tu veux lui demander qui elle est.",
-                question: "Que dois-tu dire ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-ndo-direct-thinking-correct",
-                    text: "We ndo?",
-                    isCorrect: true,
-                    exampleId: "questions-a1-example-ndo-we",
-                    explanation:
-                      "Cette question demande qui est la personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndo-direct-thinking-ndahu",
-                    text: "Kassim nge ndahu?",
-                    exampleId: "questions-a1-example-ndahu-kassim",
-                    explanation:
-                      "Cette question demande où se trouve Kassim.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndo-direct-thinking-lewo",
-                    text: "Lewo ndi?",
-                    exampleId: "questions-a1-example-ndi-lewo",
-                    explanation:
-                      "Cette question concerne le jour ou le moment.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId:
-                  "questions-a1-lesson-ndo-direct-thinking-correct",
-                ...draftUserProvidedContent,
+                explanation: "Ndo sert à demander qui est une personne.",
+                situationPrompt:
+                  "Tu veux connaître l’identité d’une personne.",
               },
             ],
-            result: {
-              title: "Leçon terminée",
-              xpPerCorrectAnswer: 10,
-              thresholds: [
-                {
-                  minPercentage: 80,
-                  label: "Maîtrisé",
-                },
-                {
-                  minPercentage: 60,
-                  label: "En acquisition",
-                },
-                {
-                  minPercentage: 0,
-                  label: "À retravailler",
-                },
-              ],
+            exercises: {
+              recognition: false,
+              contextChoice: true,
+              fillBlank: true,
+              letterBuilder: true,
+              directThinking: true,
             },
-            ...draftUserProvidedContent,
+            distractorConceptIds: [
+              "questions-a1-concept-ndahu",
+              "questions-a1-concept-ndi",
+              "questions-a1-concept-zabari",
+            ],
+            letterDistractors: ["A", "I"],
           },
           examples: [
             {
@@ -592,188 +296,40 @@ export const shikomoriQuestionsA1Chapter: Chapter = {
           blockId: "questions-a1-block-time",
           key: "Ndi",
           title: "Ndi",
-          interactiveLesson: {
-            id: "questions-a1-lesson-ndi",
-            conceptId: "questions-a1-concept-ndi",
-            title: "Leçon interactive - Ndi",
-            enabled: true,
-            unavailableMessage:
-              "Cette leçon interactive sera bientôt disponible.",
-            steps: [
+          lessonConfig: {
+            template: "single_meaning",
+            conceptKind: "question_word",
+            primaryExampleId: "questions-a1-example-ndi-lewo",
+            objectiveTitle: "Demander quand ou quel jour",
+            objective:
+              "Savoir demander quand quelque chose se passe ou quel jour nous sommes.",
+            usages: [
               {
-                id: "questions-a1-lesson-ndi-objective",
-                type: "objective",
-                title: "Demander quand ou quel jour",
-                objective:
-                  "Savoir demander quand quelque chose se passe ou quel jour nous sommes.",
-                actionLabel: "Découvrir",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndi-discovery",
-                type: "discovery",
-                title: "Découverte",
+                id: "questions-a1-usage-ndi-time",
+                meaning: "Quand ?",
+                contextId: "questions-a1-context-ndi-time",
                 exampleIds: [
                   "questions-a1-example-ndi-lewo",
                   "questions-a1-example-ndi-simple",
                 ],
-                audioLabel: "Audio bientôt disponible",
-                actionLabel: "Continuer",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndi-context",
-                type: "exercise",
-                exerciseType: "context_choice",
-                title: "Reconnaissance du contexte",
-                prompt: "Dans quelle situation utiliserais-tu « Ndi » ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-ndi-context-identity",
-                    text: "Tu veux connaître l’identité d’une personne.",
-                    explanation:
-                      "Cette situation cherche une identité, pas un moment.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndi-context-place",
-                    text: "Tu veux savoir où se trouve une personne.",
-                    explanation:
-                      "Cette situation cherche un lieu, pas un moment.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndi-context-time",
-                    text: "Tu veux demander quand ou quel jour.",
-                    isCorrect: true,
-                    explanation:
-                      "Ndi sert à demander quand ou à parler du jour.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-ndi-context-time",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndi-fill-blank",
-                type: "exercise",
-                interactionType: "answer_card_grid",
-                exerciseType: "fill_blank",
-                title: "Phrase à compléter",
-                prompt: "Lewo ______ ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-ndi-fill-blank-ndi",
-                    text: "Ndi",
-                    isCorrect: true,
-                    explanation:
-                      "Ndi est utilisé pour demander quand ou quel jour.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndi-fill-blank-ndo",
-                    text: "Ndo",
-                    explanation:
-                      "Ndi est utilisé pour demander quand ou quel jour.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndi-fill-blank-ndahu",
-                    text: "Ndahu",
-                    explanation:
-                      "Ndi est utilisé pour demander quand ou quel jour.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndi-fill-blank-zabari",
-                    text: "Zabari",
-                    explanation:
-                      "Ndi est utilisé pour demander quand ou quel jour.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-ndi-fill-blank-ndi",
-                feedbackExplanation:
-                  "Ndi est utilisé pour demander quand ou quel jour.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndi-translation-target",
-                type: "exercise",
-                interactionType: "letter_builder",
-                exerciseType: "translation_to_target",
-                title: "Construction avec lettres",
-                instruction:
-                  "Traduis en shiKomori : Aujourd'hui, c'est quel jour ?",
-                sentenceBefore: "Lewo",
-                sentenceAfter: "?",
-                letterBank: ["N", "D", "I", "A", "O"],
-                expectedAnswer: "NDI",
-                slotCount: 3,
-                completedText: "Lewo ndi?",
-                correctConstructionText: "Lewo ndi?",
-                explanation:
-                  "Tu as construit “ndi”, le mot utilisé ici pour demander quand ou quel jour.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-ndi-direct-thinking",
-                type: "exercise",
-                exerciseType: "direct_thinking",
-                title: "Pensée directe",
-                prompt: "Tu veux demander quel jour nous sommes aujourd'hui.",
-                question: "Que dois-tu dire ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-ndi-direct-thinking-correct",
-                    text: "Lewo ndi?",
-                    isCorrect: true,
-                    exampleId: "questions-a1-example-ndi-lewo",
-                    explanation:
-                      "Cette question demande quel jour nous sommes aujourd'hui.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndi-direct-thinking-ndo",
-                    text: "We ndo?",
-                    exampleId: "questions-a1-example-ndo-we",
-                    explanation:
-                      "Cette question demande qui est la personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-ndi-direct-thinking-ndahu",
-                    text: "Kassim nge ndahu?",
-                    exampleId: "questions-a1-example-ndahu-kassim",
-                    explanation:
-                      "Cette question demande où se trouve Kassim.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId:
-                  "questions-a1-lesson-ndi-direct-thinking-correct",
-                ...draftUserProvidedContent,
+                explanation: "Ndi sert à demander quand ou à parler du jour.",
+                situationPrompt:
+                  "Tu veux demander quel jour nous sommes aujourd’hui.",
               },
             ],
-            result: {
-              title: "Leçon terminée",
-              xpPerCorrectAnswer: 10,
-              thresholds: [
-                {
-                  minPercentage: 80,
-                  label: "Maîtrisé",
-                },
-                {
-                  minPercentage: 60,
-                  label: "En acquisition",
-                },
-                {
-                  minPercentage: 0,
-                  label: "À retravailler",
-                },
-              ],
+            exercises: {
+              recognition: false,
+              contextChoice: true,
+              fillBlank: true,
+              letterBuilder: true,
+              directThinking: true,
             },
-            ...draftUserProvidedContent,
+            distractorConceptIds: [
+              "questions-a1-concept-ndahu",
+              "questions-a1-concept-ndo",
+              "questions-a1-concept-zabari",
+            ],
+            letterDistractors: ["A", "O"],
           },
           examples: [
             {

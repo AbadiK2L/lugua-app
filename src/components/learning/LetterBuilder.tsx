@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { LessonFeedback } from "@/src/components/learning/LessonFeedback";
@@ -7,6 +7,102 @@ type LetterItem = {
   id: string;
   value: string;
 };
+
+function createLetterItems(letters: string[]): LetterItem[] {
+  return letters.map((letter, index) => ({
+    id: `${letter}-${index}`,
+    value: letter,
+  }));
+}
+
+function shuffleLetterItems(items: LetterItem[]): LetterItem[] {
+  const shuffled = [...items];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+
+    [shuffled[index], shuffled[randomIndex]] = [
+      shuffled[randomIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
+}
+
+function getProposedAnswer(items: LetterItem[], slotCount: number) {
+  return items
+    .slice(0, slotCount)
+    .map((item) => item.value)
+    .join("")
+    .toLocaleLowerCase();
+}
+
+function avoidSolvedInitialOrder(
+  items: LetterItem[],
+  expectedAnswer: string,
+  slotCount: number,
+): LetterItem[] {
+  const normalizedExpectedAnswer = expectedAnswer.toLocaleLowerCase();
+
+  if (getProposedAnswer(items, slotCount) !== normalizedExpectedAnswer) {
+    return items;
+  }
+
+  const shuffled = [...items];
+  const slotLimit = Math.min(slotCount, shuffled.length);
+
+  for (let slotIndex = 0; slotIndex < slotLimit; slotIndex += 1) {
+    const slotValue = shuffled[slotIndex].value.toLocaleLowerCase();
+    const distractorIndex = shuffled.findIndex(
+      (item, itemIndex) =>
+        itemIndex >= slotCount && item.value.toLocaleLowerCase() !== slotValue,
+    );
+
+    if (distractorIndex === -1) {
+      continue;
+    }
+
+    [shuffled[slotIndex], shuffled[distractorIndex]] = [
+      shuffled[distractorIndex],
+      shuffled[slotIndex],
+    ];
+
+    return shuffled;
+  }
+
+  for (let firstIndex = 0; firstIndex < slotLimit - 1; firstIndex += 1) {
+    for (let secondIndex = firstIndex + 1; secondIndex < slotLimit; secondIndex += 1) {
+      if (
+        shuffled[firstIndex].value.toLocaleLowerCase() ===
+        shuffled[secondIndex].value.toLocaleLowerCase()
+      ) {
+        continue;
+      }
+
+      [shuffled[firstIndex], shuffled[secondIndex]] = [
+        shuffled[secondIndex],
+        shuffled[firstIndex],
+      ];
+
+      return shuffled;
+    }
+  }
+
+  return shuffled;
+}
+
+function createShuffledLetterItems(
+  letters: string[],
+  expectedAnswer: string,
+  slotCount: number,
+): LetterItem[] {
+  return avoidSolvedInitialOrder(
+    shuffleLetterItems(createLetterItems(letters)),
+    expectedAnswer,
+    slotCount,
+  );
+}
 
 type LetterBuilderProps = {
   letters: string[];
@@ -36,13 +132,10 @@ export function LetterBuilder({
   onContinue,
 }: LetterBuilderProps) {
   const lettersSignature = letters.join("\u0000");
-  const letterItems = useMemo(
-    () =>
-      letters.map((letter, index) => ({
-        id: `${letter}-${index}`,
-        value: letter,
-      })),
-    [letters],
+  const lettersRef = useRef(letters);
+  lettersRef.current = letters;
+  const [letterItems, setLetterItems] = useState<LetterItem[]>(() =>
+    createShuffledLetterItems(letters, expectedAnswer, slotCount),
   );
 
   const [placedLetters, setPlacedLetters] = useState<(LetterItem | null)[]>(
@@ -50,6 +143,9 @@ export function LetterBuilder({
   );
 
   useEffect(() => {
+    setLetterItems(
+      createShuffledLetterItems(lettersRef.current, expectedAnswer, slotCount),
+    );
     setPlacedLetters(Array.from({ length: slotCount }, () => null));
   }, [expectedAnswer, lettersSignature, slotCount]);
 
