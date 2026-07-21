@@ -191,6 +191,8 @@ function DiscoveryStep({ lesson, step, onContinue }: DiscoveryStepProps) {
         </View>
       ) : null}
 
+      {step.explanation ? <Text style={styles.discoveryExplanation}>{step.explanation}</Text> : null}
+
       <TouchableOpacity
         activeOpacity={isAudioDisabled ? 1 : 0.85}
         disabled={isAudioDisabled}
@@ -608,6 +610,12 @@ const styles = StyleSheet.create({
     color: "#cbd5e1",
     fontSize: 17,
     fontWeight: "800",
+  },
+  discoveryExplanation: {
+    color: "#cbd5e1",
+    fontSize: 15,
+    fontWeight: "700",
+    lineHeight: 22,
   },
   audioButton: {
     minHeight: 46,

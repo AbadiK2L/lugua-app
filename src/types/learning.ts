@@ -203,6 +203,7 @@ export type InteractiveLessonDiscoveryStep = LinguisticContent & {
   type: "discovery";
   title: string;
   exampleIds: string[];
+  explanation?: string;
   audioLabel: string;
   actionLabel: string;
 };
