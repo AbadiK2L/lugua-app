@@ -49,11 +49,18 @@ export type LessonExerciseGenerationConfig = {
 
 export type ConceptUsage = {
   id: string;
+  title?: string;
   meaning: string;
   contextId: string;
   exampleIds: string[];
   explanation: string;
   situationPrompt: string;
+};
+
+export type ContextualLessonExerciseSelection = {
+  contextUsageIds?: string[];
+  fillBlankUsageIds?: string[];
+  directThinkingUsageId?: string;
 };
 
 export type LessonGenerationBaseConfig = {
@@ -64,6 +71,8 @@ export type LessonGenerationBaseConfig = {
   exercises?: LessonExerciseGenerationConfig;
   distractorConceptIds?: string[];
   letterDistractors?: string[];
+  letterBuilderInstruction?: string;
+  letterBuilderExplanation?: string;
 };
 
 export type SingleMeaningLessonConfig = LessonGenerationBaseConfig & {
@@ -74,6 +83,7 @@ export type SingleMeaningLessonConfig = LessonGenerationBaseConfig & {
 export type ContextualMeaningsLessonConfig = LessonGenerationBaseConfig & {
   template: "contextual_meanings";
   usages: [ConceptUsage, ConceptUsage, ...ConceptUsage[]];
+  usageExercises?: ContextualLessonExerciseSelection;
 };
 
 export type LessonGenerationConfig =

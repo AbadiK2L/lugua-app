@@ -1,6 +1,8 @@
 import type {
   Chapter,
   Concept,
+  ConceptUsage,
+  ContextualMeaningsLessonConfig,
   InteractiveLesson,
   InteractiveLessonChoiceExerciseStep,
   InteractiveLessonLetterBuilderStep,
@@ -18,6 +20,13 @@ type DistractorConceptDetails = {
   concept: Concept;
   primaryExample: LinguisticExample;
   primaryContext: LearningContext;
+};
+
+export type ResolvedConceptUsage = {
+  usage: ConceptUsage;
+  context: LearningContext;
+  examples: LinguisticExample[];
+  primaryExample: LinguisticExample;
 };
 
 const DEFAULT_RESULT = {
@@ -101,6 +110,52 @@ function findContextInConcept(
   return concept.contexts.find((context) => context.id === contextId);
 }
 
+export function resolveConceptUsages(
+  concept: Concept,
+  usages: ConceptUsage[],
+): ResolvedConceptUsage[] | undefined {
+  if (usages.length === 0) {
+    return undefined;
+  }
+
+  const resolvedUsages: ResolvedConceptUsage[] = [];
+
+  for (const usage of usages) {
+    const context = findContextInConcept(concept, usage.contextId);
+
+    if (!context || usage.exampleIds.length === 0) {
+      return undefined;
+    }
+
+    const examples: LinguisticExample[] = [];
+
+    for (const exampleId of usage.exampleIds) {
+      const example = findExampleInConcept(concept, exampleId);
+
+      if (!example) {
+        return undefined;
+      }
+
+      examples.push(example);
+    }
+
+    const primaryExample = examples[0];
+
+    if (!primaryExample) {
+      return undefined;
+    }
+
+    resolvedUsages.push({
+      usage,
+      context,
+      examples,
+      primaryExample,
+    });
+  }
+
+  return resolvedUsages;
+}
+
 function normalizeContextDescription(description: string) {
   return description.trim().replace(/[.?!]+$/g, "").toLocaleLowerCase();
 }
@@ -117,6 +172,10 @@ function getDiscoveryExampleIds(primaryExampleId: string, exampleIds: string[]) 
   return [primaryExampleId, ...exampleIds].filter(
     (exampleId, index, allExampleIds) => allExampleIds.indexOf(exampleId) === index,
   );
+}
+
+function getUniqueIds(ids: string[]) {
+  return ids.filter((id, index, allIds) => allIds.indexOf(id) === index);
 }
 
 function compactText(parts: string[]) {
@@ -238,10 +297,33 @@ function buildLetterSentenceParts(
 }
 
 function shouldGenerateExercise(
-  config: SingleMeaningLessonConfig,
-  exerciseKey: keyof NonNullable<SingleMeaningLessonConfig["exercises"]>,
+  config: LessonGenerationConfig,
+  exerciseKey: keyof NonNullable<LessonGenerationConfig["exercises"]>,
 ) {
   return config.exercises?.[exerciseKey] !== false;
+}
+
+function selectUsageIds(
+  resolvedUsages: ResolvedConceptUsage[],
+  usageIds: string[] | undefined,
+  fallback: ResolvedConceptUsage[],
+) {
+  const ids = usageIds ?? fallback.map((resolvedUsage) => resolvedUsage.usage.id);
+  const selectedUsages: ResolvedConceptUsage[] = [];
+
+  for (const usageId of ids) {
+    const resolvedUsage = resolvedUsages.find(
+      (candidate) => candidate.usage.id === usageId,
+    );
+
+    if (!resolvedUsage) {
+      return undefined;
+    }
+
+    selectedUsages.push(resolvedUsage);
+  }
+
+  return selectedUsages;
 }
 
 function buildContextStep(
@@ -337,6 +419,7 @@ function buildFillBlankStep(
   usageExplanation: string,
   metadata: LinguisticContent,
   distractors: DistractorConceptDetails[],
+  title = "Phrase à compléter",
 ): InteractiveLessonChoiceExerciseStep | undefined {
   const prompt = buildFillBlankPrompt(primaryExample, concept);
 
@@ -369,7 +452,7 @@ function buildFillBlankStep(
     type: "exercise",
     interactionType: options.length === 4 ? "answer_card_grid" : undefined,
     exerciseType: "fill_blank",
-    title: "Phrase à compléter",
+    title,
     prompt,
     options,
     correctOptionId: correctOption.id,
@@ -380,7 +463,7 @@ function buildFillBlankStep(
 
 function buildLetterBuilderStep(
   concept: Concept,
-  config: SingleMeaningLessonConfig,
+  config: LessonGenerationConfig,
   primaryExample: LinguisticExample,
   metadata: LinguisticContent,
 ): InteractiveLessonLetterBuilderStep | undefined {
@@ -392,6 +475,16 @@ function buildLetterBuilderStep(
 
   const expectedAnswer = concept.key.toLocaleUpperCase();
   const meaning = stripFinalPunctuation(config.usages[0].meaning).toLocaleLowerCase();
+  const instruction =
+    config.letterBuilderInstruction ??
+    (config.template === "single_meaning"
+      ? `Construis le mot qui signifie « ${meaning} ».`
+      : "Construis le mot utilisé dans ces différents contextes.");
+  const explanation =
+    config.letterBuilderExplanation ??
+    (config.template === "single_meaning"
+      ? config.usages[0].explanation
+      : `Le sens de ${concept.title} dépend du contexte.`);
 
   return {
     id: `${concept.id}-generated-letter-builder`,
@@ -399,7 +492,7 @@ function buildLetterBuilderStep(
     interactionType: "letter_builder",
     exerciseType: "translation_to_target",
     title: "Construction avec lettres",
-    instruction: `Construis le mot qui signifie « ${meaning} ».`,
+    instruction,
     sentenceBefore: sentenceParts.sentenceBefore,
     sentenceAfter: sentenceParts.sentenceAfter,
     letterBank: [
@@ -410,7 +503,7 @@ function buildLetterBuilderStep(
     slotCount: Array.from(expectedAnswer).length,
     completedText: primaryExample.targetLanguageText,
     correctConstructionText: primaryExample.targetLanguageText,
-    explanation: config.usages[0].explanation,
+    explanation,
     ...metadata,
   };
 }
@@ -456,6 +549,267 @@ function buildDirectThinkingStep(
     options,
     correctOptionId: correctOption.id,
     feedbackExplanation: usageExplanation,
+    ...metadata,
+  };
+}
+
+function buildContextualExampleOptions(
+  concept: Concept,
+  resolvedUsage: ResolvedConceptUsage,
+  resolvedUsages: ResolvedConceptUsage[],
+  metadata: LinguisticContent,
+  distractors: DistractorConceptDetails[],
+): InteractiveLessonOption[] {
+  const correctOption = createOption(
+    `${concept.id}-generated-${resolvedUsage.usage.id}-correct`,
+    resolvedUsage.primaryExample.targetLanguageText,
+    resolvedUsage.usage.explanation,
+    metadata,
+    true,
+    resolvedUsage.primaryExample.id,
+  );
+  const internalDistractors = resolvedUsages
+    .filter((candidate) => candidate.usage.id !== resolvedUsage.usage.id)
+    .map((candidate) =>
+      createOption(
+        `${concept.id}-generated-${resolvedUsage.usage.id}-internal-${candidate.usage.id}`,
+        candidate.primaryExample.targetLanguageText,
+        candidate.usage.explanation,
+        metadata,
+        false,
+        candidate.primaryExample.id,
+      ),
+    );
+  const externalDistractors = distractors.map((distractor) =>
+    createOption(
+      `${concept.id}-generated-${resolvedUsage.usage.id}-external-${distractor.concept.id}`,
+      distractor.primaryExample.targetLanguageText,
+      distractor.primaryContext.description,
+      metadata,
+      false,
+      distractor.primaryExample.id,
+    ),
+  );
+
+  return uniqueByText([
+    correctOption,
+    ...internalDistractors,
+    ...externalDistractors,
+  ]).slice(0, 4);
+}
+
+function buildContextualContextStep(
+  concept: Concept,
+  resolvedUsage: ResolvedConceptUsage,
+  resolvedUsages: ResolvedConceptUsage[],
+  metadata: LinguisticContent,
+  distractors: DistractorConceptDetails[],
+): InteractiveLessonChoiceExerciseStep {
+  const meaning = stripFinalPunctuation(resolvedUsage.usage.meaning);
+  const options = buildContextualExampleOptions(
+    concept,
+    resolvedUsage,
+    resolvedUsages,
+    metadata,
+    distractors,
+  );
+
+  return {
+    id: `${concept.id}-generated-${resolvedUsage.usage.id}-context`,
+    type: "exercise",
+    exerciseType: "context_choice",
+    interactionType: options.length === 4 ? "answer_card_grid" : undefined,
+    title: `Reconnaître le sens « ${meaning} »`,
+    prompt: `Dans quelle phrase ${concept.title} sert-il à exprimer « ${meaning} » ?`,
+    options,
+    correctOptionId: `${concept.id}-generated-${resolvedUsage.usage.id}-correct`,
+    feedbackExplanation: resolvedUsage.usage.explanation,
+    ...metadata,
+  };
+}
+
+function buildContextualDirectThinkingStep(
+  concept: Concept,
+  resolvedUsage: ResolvedConceptUsage,
+  resolvedUsages: ResolvedConceptUsage[],
+  metadata: LinguisticContent,
+  distractors: DistractorConceptDetails[],
+): InteractiveLessonChoiceExerciseStep {
+  const options = buildContextualExampleOptions(
+    concept,
+    resolvedUsage,
+    resolvedUsages,
+    metadata,
+    distractors,
+  );
+
+  return {
+    id: `${concept.id}-generated-direct-thinking`,
+    type: "exercise",
+    exerciseType: "direct_thinking",
+    title: "Pensée directe",
+    prompt: resolvedUsage.usage.situationPrompt,
+    question: "Que dois-tu dire ?",
+    options,
+    correctOptionId: `${concept.id}-generated-${resolvedUsage.usage.id}-correct`,
+    feedbackExplanation: resolvedUsage.usage.explanation,
+    ...metadata,
+  };
+}
+
+function getDirectThinkingUsage(
+  resolvedUsages: ResolvedConceptUsage[],
+  directThinkingUsageId: string | undefined,
+) {
+  const usage = directThinkingUsageId
+    ? resolvedUsages.find((candidate) => candidate.usage.id === directThinkingUsageId)
+    : resolvedUsages[resolvedUsages.length - 1];
+
+  return usage;
+}
+
+function generateContextualMeaningsLesson(
+  concept: Concept,
+  config: ContextualMeaningsLessonConfig,
+  chapter: Chapter,
+): InteractiveLesson | undefined {
+  const block = findBlockForConcept(chapter, concept);
+  const primaryExample = findExampleInConcept(concept, config.primaryExampleId);
+  const resolvedUsages = resolveConceptUsages(concept, config.usages);
+  const distractors = getDistractorDetails(chapter, config.distractorConceptIds);
+
+  if (!block || !primaryExample || !resolvedUsages || !distractors) {
+    return undefined;
+  }
+
+  const firstResolvedUsage = resolvedUsages[0];
+
+  if (!firstResolvedUsage) {
+    return undefined;
+  }
+
+  const contextUsages = selectUsageIds(
+    resolvedUsages,
+    config.usageExercises?.contextUsageIds,
+    resolvedUsages,
+  );
+  const fillBlankUsages = selectUsageIds(
+    resolvedUsages,
+    config.usageExercises?.fillBlankUsageIds,
+    [firstResolvedUsage],
+  );
+  const directThinkingUsage = getDirectThinkingUsage(
+    resolvedUsages,
+    config.usageExercises?.directThinkingUsageId,
+  );
+
+  if (!contextUsages || !fillBlankUsages || !directThinkingUsage) {
+    return undefined;
+  }
+
+  const metadata = getLinguisticMetadata(concept);
+  const steps: InteractiveLessonStep[] = [
+    {
+      id: `${concept.id}-generated-objective`,
+      type: "objective",
+      title: config.objectiveTitle ?? block.title,
+      objective:
+        config.objective ??
+        `Découvrir ${concept.title} et savoir l'utiliser dans plusieurs situations.`,
+      actionLabel: "Découvrir",
+      ...metadata,
+    },
+  ];
+
+  for (const [index, resolvedUsage] of resolvedUsages.entries()) {
+    const exampleIds = getUniqueIds(resolvedUsage.usage.exampleIds);
+
+    steps.push({
+      id: `${concept.id}-generated-${resolvedUsage.usage.id}-discovery`,
+      type: "discovery",
+      title:
+        resolvedUsage.usage.title ??
+        `Usage ${index + 1} : ${stripFinalPunctuation(resolvedUsage.usage.meaning)}`,
+      exampleIds,
+      explanation: resolvedUsage.usage.explanation,
+      audioLabel: "Audio bientôt disponible",
+      actionLabel: "Continuer",
+      ...metadata,
+    });
+  }
+
+  if (shouldGenerateExercise(config, "contextChoice")) {
+    for (const resolvedUsage of contextUsages) {
+      steps.push(
+        buildContextualContextStep(
+          concept,
+          resolvedUsage,
+          resolvedUsages,
+          metadata,
+          distractors,
+        ),
+      );
+    }
+  }
+
+  if (shouldGenerateExercise(config, "fillBlank")) {
+    for (const resolvedUsage of fillBlankUsages) {
+      const meaning = stripFinalPunctuation(resolvedUsage.usage.meaning);
+      const fillBlankStep = buildFillBlankStep(
+        concept,
+        resolvedUsage.primaryExample,
+        resolvedUsage.usage.explanation,
+        metadata,
+        distractors,
+        `Phrase à compléter : ${meaning}`,
+      );
+
+      if (!fillBlankStep) {
+        return undefined;
+      }
+
+      steps.push({
+        ...fillBlankStep,
+        id: `${concept.id}-generated-${resolvedUsage.usage.id}-fill-blank`,
+      });
+    }
+  }
+
+  if (shouldGenerateExercise(config, "letterBuilder")) {
+    const letterBuilderStep = buildLetterBuilderStep(
+      concept,
+      config,
+      primaryExample,
+      metadata,
+    );
+
+    if (!letterBuilderStep) {
+      return undefined;
+    }
+
+    steps.push(letterBuilderStep);
+  }
+
+  if (shouldGenerateExercise(config, "directThinking")) {
+    steps.push(
+      buildContextualDirectThinkingStep(
+        concept,
+        directThinkingUsage,
+        resolvedUsages,
+        metadata,
+        distractors,
+      ),
+    );
+  }
+
+  return {
+    id: `${concept.id}-generated-lesson`,
+    conceptId: concept.id,
+    title: `Leçon interactive - ${concept.title}`,
+    enabled: true,
+    unavailableMessage: "Cette leçon interactive sera bientôt disponible.",
+    steps,
+    result: DEFAULT_RESULT,
     ...metadata,
   };
 }
@@ -585,11 +939,15 @@ export function generateInteractiveLesson(
   config: LessonGenerationConfig,
   chapter: Chapter,
 ): InteractiveLesson | undefined {
-  if (config.template !== "single_meaning") {
-    return undefined;
+  if (config.template === "single_meaning") {
+    return generateSingleMeaningLesson(concept, config, chapter);
   }
 
-  return generateSingleMeaningLesson(concept, config, chapter);
+  if (config.template === "contextual_meanings") {
+    return generateContextualMeaningsLesson(concept, config, chapter);
+  }
+
+  return undefined;
 }
 
 export function resolveInteractiveLesson(

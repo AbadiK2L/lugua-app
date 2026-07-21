@@ -420,288 +420,70 @@ export const shikomoriQuestionsA1Chapter: Chapter = {
           blockId: "questions-a1-block-manner-state-price",
           key: "Dje",
           title: "Dje",
-          interactiveLesson: {
-            id: "questions-a1-lesson-dje",
-            conceptId: "questions-a1-concept-dje",
-            title: "Leçon interactive - Dje",
-            enabled: true,
-            unavailableMessage:
-              "Cette leçon interactive sera bientôt disponible.",
-            steps: [
+          lessonConfig: {
+            template: "contextual_meanings",
+            conceptKind: "question_word",
+            primaryExampleId: "questions-a1-example-dje-simple",
+            objectiveTitle: "Comprendre les deux usages de Dje",
+            objective:
+              "Savoir utiliser Dje pour demander comment ou demander un prix selon le contexte.",
+            usages: [
               {
-                id: "questions-a1-lesson-dje-objective",
-                type: "objective",
-                title: "Comprendre les deux usages de Dje",
-                objective:
-                  "Savoir utiliser Dje pour demander comment ou demander un prix selon le contexte.",
-                actionLabel: "Découvrir",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-dje-discovery-how",
-                type: "discovery",
+                id: "questions-a1-usage-dje-how",
                 title: "Premier usage : comment",
+                meaning: "Comment ?",
+                contextId: "questions-a1-context-dje-action",
                 exampleIds: [
                   "questions-a1-example-dje-action",
                   "questions-a1-example-dje-simple",
                 ],
                 explanation:
                   "Ici, Dje sert à demander comment va une personne.",
-                audioLabel: "Audio bientôt disponible",
-                actionLabel: "Continuer",
-                ...draftUserProvidedContent,
+                situationPrompt:
+                  "Tu veux demander comment va une personne.",
               },
               {
-                id: "questions-a1-lesson-dje-discovery-price",
-                type: "discovery",
+                id: "questions-a1-usage-dje-price",
                 title: "Deuxième usage : le prix",
-                exampleIds: ["questions-a1-example-dje-carrots-sell-price"],
+                meaning: "À combien ?",
+                contextId: "questions-a1-context-dje-price",
+                exampleIds: [
+                  "questions-a1-example-dje-carrots-sell-price",
+                ],
                 explanation:
                   "Dans une situation de vente, Dje sert à demander combien ou à quel prix.",
-                audioLabel: "Audio bientôt disponible",
-                actionLabel: "Continuer",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-dje-context-how",
-                type: "exercise",
-                exerciseType: "context_choice",
-                title: "Reconnaître le sens « comment »",
-                prompt: "Dans quelle phrase Dje signifie-t-il « comment » ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-dje-context-how-correct",
-                    text: "Ye hufanyiha dje?",
-                    isCorrect: true,
-                    exampleId: "questions-a1-example-dje-action",
-                    explanation:
-                      "La phrase parle de l’état d’une personne : Dje signifie donc « comment ».",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-context-how-price",
-                    text: "Zekaroti ngohuzo dje?",
-                    exampleId: "questions-a1-example-dje-carrots-sell-price",
-                    explanation:
-                      "La phrase parle d'une vente, pas de l'état d'une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-context-how-place",
-                    text: "Kassim nge ndahu?",
-                    exampleId: "questions-a1-example-ndahu-kassim",
-                    explanation:
-                      "Cette question sert à demander où se trouve Kassim.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-dje-context-how-correct",
-                feedbackExplanation:
-                  "La phrase parle de l’état d’une personne : Dje signifie donc « comment ».",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-dje-context-price",
-                type: "exercise",
-                exerciseType: "context_choice",
-                title: "Reconnaître le sens lié au prix",
-                prompt: "Dans quelle phrase Dje sert-il à demander un prix ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-dje-context-price-ndo",
-                    text: "We ndo?",
-                    exampleId: "questions-a1-example-ndo-we",
-                    explanation:
-                      "Cette question sert à demander qui est une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-context-price-ndi",
-                    text: "Lewo ndi?",
-                    exampleId: "questions-a1-example-ndi-lewo",
-                    explanation:
-                      "Cette question sert à demander un jour ou un moment.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-context-price-correct",
-                    text: "Zekaroti ngohuzo dje?",
-                    isCorrect: true,
-                    exampleId: "questions-a1-example-dje-carrots-sell-price",
-                    explanation:
-                      "La phrase concerne la vente de carottes : Dje demande donc combien ou à quel prix.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-dje-context-price-correct",
-                feedbackExplanation:
-                  "La phrase concerne la vente de carottes : Dje demande donc combien ou à quel prix.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-dje-fill-blank-how",
-                type: "exercise",
-                interactionType: "answer_card_grid",
-                exerciseType: "fill_blank",
-                title: "Phrase à compléter : comment",
-                prompt: "Ye hufanyiha ______ ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-dje-fill-blank-how-correct",
-                    text: "Dje",
-                    isCorrect: true,
-                    explanation:
-                      "Dje complète la question pour demander comment va une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-fill-blank-how-ndi",
-                    text: "Ndi",
-                    explanation:
-                      "Dje complète la question pour demander comment va une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-fill-blank-how-ndo",
-                    text: "Ndo",
-                    explanation:
-                      "Dje complète la question pour demander comment va une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-fill-blank-how-ndahu",
-                    text: "Ndahu",
-                    explanation:
-                      "Dje complète la question pour demander comment va une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId: "questions-a1-lesson-dje-fill-blank-how-correct",
-                feedbackExplanation:
-                  "Dje complète la question pour demander comment va une personne.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-dje-fill-blank-price",
-                type: "exercise",
-                interactionType: "answer_card_grid",
-                exerciseType: "fill_blank",
-                title: "Phrase à compléter : prix",
-                prompt: "Zekaroti ngohuzo ______ ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-dje-fill-blank-price-correct",
-                    text: "Dje",
-                    isCorrect: true,
-                    explanation:
-                      "Dje complète la question pour demander un prix.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-fill-blank-price-zabari",
-                    text: "Zabari",
-                    explanation:
-                      "Dje complète la question pour demander un prix.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-fill-blank-price-ndo",
-                    text: "Ndo",
-                    explanation:
-                      "Dje complète la question pour demander un prix.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-fill-blank-price-ndi",
-                    text: "Ndi",
-                    explanation:
-                      "Dje complète la question pour demander un prix.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId:
-                  "questions-a1-lesson-dje-fill-blank-price-correct",
-                feedbackExplanation:
-                  "Dje complète la question pour demander un prix.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-dje-translation-target",
-                type: "exercise",
-                interactionType: "letter_builder",
-                exerciseType: "translation_to_target",
-                title: "Construction avec lettres",
-                instruction: "Construis le mot utilisé dans les deux phrases.",
-                sentenceBefore: "",
-                sentenceAfter: "",
-                letterBank: ["D", "J", "E", "A", "I"],
-                expectedAnswer: "DJE",
-                slotCount: 3,
-                completedText: "Dje",
-                correctConstructionText: "Dje",
-                explanation:
-                  "Le même mot peut signifier « comment » ou servir à demander un prix selon le contexte.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-dje-direct-thinking",
-                type: "exercise",
-                exerciseType: "direct_thinking",
-                title: "Pensée directe",
-                prompt:
+                situationPrompt:
                   "Une personne vend des carottes. Tu veux connaître son prix.",
-                question: "Que dois-tu dire ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-dje-direct-thinking-correct",
-                    text: "Zekaroti ngohuzo dje?",
-                    isCorrect: true,
-                    exampleId: "questions-a1-example-dje-carrots-sell-price",
-                    explanation:
-                      "Cette question demande le prix dans une situation de vente.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-direct-thinking-how",
-                    text: "Ye hufanyiha dje?",
-                    exampleId: "questions-a1-example-dje-action",
-                    explanation:
-                      "Cette question demande comment va une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-dje-direct-thinking-time",
-                    text: "Lewo ndi?",
-                    exampleId: "questions-a1-example-ndi-lewo",
-                    explanation:
-                      "Cette question sert à demander un jour ou un moment.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId:
-                  "questions-a1-lesson-dje-direct-thinking-correct",
-                ...draftUserProvidedContent,
               },
             ],
-            result: {
-              title: "Leçon terminée",
-              xpPerCorrectAnswer: 10,
-              thresholds: [
-                {
-                  minPercentage: 80,
-                  label: "Maîtrisé",
-                },
-                {
-                  minPercentage: 60,
-                  label: "En acquisition",
-                },
-                {
-                  minPercentage: 0,
-                  label: "À retravailler",
-                },
-              ],
+            exercises: {
+              recognition: false,
+              contextChoice: true,
+              fillBlank: true,
+              letterBuilder: true,
+              directThinking: true,
             },
-            ...draftUserProvidedContent,
+            usageExercises: {
+              contextUsageIds: [
+                "questions-a1-usage-dje-how",
+                "questions-a1-usage-dje-price",
+              ],
+              fillBlankUsageIds: [
+                "questions-a1-usage-dje-how",
+                "questions-a1-usage-dje-price",
+              ],
+              directThinkingUsageId: "questions-a1-usage-dje-price",
+            },
+            distractorConceptIds: [
+              "questions-a1-concept-ndahu",
+              "questions-a1-concept-ndo",
+              "questions-a1-concept-ndi",
+            ],
+            letterDistractors: ["A", "I"],
+            letterBuilderInstruction:
+              "Construis le mot utilisé dans les deux contextes.",
+            letterBuilderExplanation:
+              "Le même mot peut signifier « comment » ou servir à demander un prix selon le contexte.",
           },
           examples: [
             {
@@ -836,268 +618,84 @@ export const shikomoriQuestionsA1Chapter: Chapter = {
           blockId: "questions-a1-block-thing-choice-quantity",
           key: "Hindri",
           title: "Hindri",
-          interactiveLesson: {
-            id: "questions-a1-lesson-hindri",
-            conceptId: "questions-a1-concept-hindri",
-            title: "Leçon interactive - Hindri",
-            enabled: true,
-            unavailableMessage:
-              "Cette leçon interactive sera bientôt disponible.",
-            steps: [
+          lessonConfig: {
+            template: "contextual_meanings",
+            conceptKind: "question_word",
+            primaryExampleId: "questions-a1-example-hindri-action",
+            objectiveTitle: "Comprendre les différents usages de Hindri",
+            objective:
+              "Savoir utiliser Hindri pour demander quoi, quel ou combien selon le contexte.",
+            usages: [
               {
-                id: "questions-a1-lesson-hindri-objective",
-                type: "objective",
-                title: "Comprendre les différents usages de Hindri",
-                objective:
-                  "Savoir utiliser Hindri pour demander quoi, quel ou combien selon le contexte.",
-                actionLabel: "Découvrir",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-hindri-discovery-general",
-                type: "discovery",
+                id: "questions-a1-usage-hindri-what",
                 title: "Sens général",
+                meaning: "Quoi ?",
+                contextId: "questions-a1-context-hindri-what",
                 exampleIds: ["questions-a1-example-hindri-simple"],
                 explanation:
-                  "Hindri permet généralement de demander une information sur une chose, un choix ou une quantité.",
-                audioLabel: "Audio bientôt disponible",
-                actionLabel: "Continuer",
-                ...draftUserProvidedContent,
+                  "Hindri permet généralement de demander une information sur une chose.",
+                situationPrompt: "Tu veux demander la nature d’une chose.",
               },
               {
-                id: "questions-a1-lesson-hindri-discovery-which",
-                type: "discovery",
+                id: "questions-a1-usage-hindri-which",
                 title: "Demander quel",
+                meaning: "Quel ou quelle ?",
+                contextId: "questions-a1-context-hindri-which",
                 exampleIds: [
                   "questions-a1-example-hindri-work",
                   "questions-a1-example-hindri-person",
                 ],
-                explanation: "Ici, Hindri permet de demander quel travail.",
-                audioLabel: "Audio bientôt disponible",
-                actionLabel: "Continuer",
-                ...draftUserProvidedContent,
+                explanation:
+                  "Ici, Hindri permet de demander quel travail ou quelle personne.",
+                situationPrompt: "Tu veux demander quel travail.",
               },
               {
-                id: "questions-a1-lesson-hindri-discovery-action",
-                type: "discovery",
+                id: "questions-a1-usage-hindri-action",
                 title: "Demander une action",
+                meaning: "Que fais-tu ?",
+                contextId: "questions-a1-context-hindri-action",
                 exampleIds: ["questions-a1-example-hindri-action"],
                 explanation:
                   "Dans cette phrase, Hindri sert à demander quelle action la personne effectue.",
-                audioLabel: "Audio bientôt disponible",
-                actionLabel: "Continuer",
-                ...draftUserProvidedContent,
+                situationPrompt:
+                  "Une personne est occupée. Tu veux lui demander ce qu’elle fait.",
               },
               {
-                id: "questions-a1-lesson-hindri-discovery-quantity-price",
-                type: "discovery",
+                id: "questions-a1-usage-hindri-quantity-price",
                 title: "Demander une quantité ou un prix",
+                meaning: "Combien ?",
+                contextId: "questions-a1-context-hindri-quantity-price",
                 exampleIds: ["questions-a1-example-hindri-carrots-cost"],
                 explanation:
                   "Dans cette situation, Hindri sert à demander une quantité ou un prix.",
-                audioLabel: "Audio bientôt disponible",
-                actionLabel: "Continuer",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-hindri-context-which",
-                type: "exercise",
-                exerciseType: "context_choice",
-                title: "Reconnaître le sens « quel »",
-                prompt:
-                  "Dans quelle phrase Hindri sert-il à demander « quel » ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-hindri-context-which-correct",
-                    text: "Hazi hindri?",
-                    isCorrect: true,
-                    exampleId: "questions-a1-example-hindri-work",
-                    explanation: "Cette phrase demande quel travail.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-hindri-context-which-action",
-                    text: "We ufanya hindri?",
-                    exampleId: "questions-a1-example-hindri-action",
-                    explanation:
-                      "Cette phrase demande ce que fait une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-hindri-context-which-price",
-                    text: "Zekaroti kilo hindri?",
-                    exampleId: "questions-a1-example-hindri-carrots-cost",
-                    explanation:
-                      "Cette phrase sert à demander une quantité ou un prix.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId:
-                  "questions-a1-lesson-hindri-context-which-correct",
-                feedbackExplanation: "Cette phrase demande quel travail.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-hindri-context-quantity-price",
-                type: "exercise",
-                exerciseType: "context_choice",
-                title: "Reconnaître le sens « combien »",
-                prompt:
-                  "Dans quelle phrase Hindri sert-il à demander combien ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-hindri-context-quantity-price-person",
-                    text: "Mdru hindri?",
-                    exampleId: "questions-a1-example-hindri-person",
-                    explanation:
-                      "Cette phrase demande quelle personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-hindri-context-quantity-price-correct",
-                    text: "Zekaroti kilo hindri?",
-                    isCorrect: true,
-                    exampleId: "questions-a1-example-hindri-carrots-cost",
-                    explanation:
-                      "La phrase demande le prix ou la quantité liée aux carottes.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-hindri-context-quantity-price-action",
-                    text: "We ufanya hindri?",
-                    exampleId: "questions-a1-example-hindri-action",
-                    explanation:
-                      "Cette phrase demande ce que fait une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId:
-                  "questions-a1-lesson-hindri-context-quantity-price-correct",
-                feedbackExplanation:
-                  "La phrase demande le prix ou la quantité liée aux carottes.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-hindri-fill-blank-action",
-                type: "exercise",
-                interactionType: "answer_card_grid",
-                exerciseType: "fill_blank",
-                title: "Phrase à compléter",
-                prompt: "We ufanya ______ ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-hindri-fill-blank-action-correct",
-                    text: "Hindri",
-                    isCorrect: true,
-                    explanation:
-                      "Hindri complète la phrase pour demander ce que fait une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-hindri-fill-blank-action-dje",
-                    text: "Dje",
-                    explanation:
-                      "Hindri complète la phrase pour demander ce que fait une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-hindri-fill-blank-action-ndo",
-                    text: "Ndo",
-                    explanation:
-                      "Hindri complète la phrase pour demander ce que fait une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-hindri-fill-blank-action-ndi",
-                    text: "Ndi",
-                    explanation:
-                      "Hindri complète la phrase pour demander ce que fait une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId:
-                  "questions-a1-lesson-hindri-fill-blank-action-correct",
-                feedbackExplanation:
-                  "Hindri complète la phrase pour demander ce que fait une personne.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-hindri-translation-target",
-                type: "exercise",
-                interactionType: "letter_builder",
-                exerciseType: "translation_to_target",
-                title: "Construction avec lettres",
-                instruction: "Complète la phrase : Que fais-tu ?",
-                sentenceBefore: "We ufanya",
-                sentenceAfter: "?",
-                letterBank: ["H", "I", "N", "D", "R", "I", "A", "O"],
-                expectedAnswer: "HINDRI",
-                slotCount: 6,
-                completedText: "We ufanya hindri?",
-                correctConstructionText: "We ufanya hindri?",
-                explanation:
-                  "Tu as construit Hindri, utilisé ici pour demander ce que fait une personne.",
-                ...draftUserProvidedContent,
-              },
-              {
-                id: "questions-a1-lesson-hindri-direct-thinking",
-                type: "exercise",
-                exerciseType: "direct_thinking",
-                title: "Pensée directe",
-                prompt:
-                  "Une personne est occupée. Tu veux lui demander ce qu’elle fait.",
-                question: "Que dois-tu dire ?",
-                options: [
-                  {
-                    id: "questions-a1-lesson-hindri-direct-thinking-correct",
-                    text: "We ufanya hindri?",
-                    isCorrect: true,
-                    exampleId: "questions-a1-example-hindri-action",
-                    explanation:
-                      "Cette question demande ce que fait une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-hindri-direct-thinking-dje",
-                    text: "Ye hufanyiha dje?",
-                    exampleId: "questions-a1-example-dje-action",
-                    explanation:
-                      "Cette question sert à demander comment va une personne.",
-                    ...draftUserProvidedContent,
-                  },
-                  {
-                    id: "questions-a1-lesson-hindri-direct-thinking-ndi",
-                    text: "Lewo ndi?",
-                    exampleId: "questions-a1-example-ndi-lewo",
-                    explanation:
-                      "Cette question sert à demander un jour ou un moment.",
-                    ...draftUserProvidedContent,
-                  },
-                ],
-                correctOptionId:
-                  "questions-a1-lesson-hindri-direct-thinking-correct",
-                ...draftUserProvidedContent,
+                situationPrompt:
+                  "Tu veux demander combien coûtent les carottes.",
               },
             ],
-            result: {
-              title: "Leçon terminée",
-              xpPerCorrectAnswer: 10,
-              thresholds: [
-                {
-                  minPercentage: 80,
-                  label: "Maîtrisé",
-                },
-                {
-                  minPercentage: 60,
-                  label: "En acquisition",
-                },
-                {
-                  minPercentage: 0,
-                  label: "À retravailler",
-                },
-              ],
+            exercises: {
+              recognition: false,
+              contextChoice: true,
+              fillBlank: true,
+              letterBuilder: true,
+              directThinking: true,
             },
-            ...draftUserProvidedContent,
+            usageExercises: {
+              contextUsageIds: [
+                "questions-a1-usage-hindri-which",
+                "questions-a1-usage-hindri-quantity-price",
+              ],
+              fillBlankUsageIds: ["questions-a1-usage-hindri-action"],
+              directThinkingUsageId: "questions-a1-usage-hindri-action",
+            },
+            distractorConceptIds: [
+              "questions-a1-concept-dje",
+              "questions-a1-concept-ndo",
+              "questions-a1-concept-ndi",
+            ],
+            letterDistractors: ["A", "O"],
+            letterBuilderInstruction: "Complète la phrase : Que fais-tu ?",
+            letterBuilderExplanation:
+              "Tu as construit Hindri, utilisé ici pour demander ce que fait une personne.",
           },
           examples: [
             {
