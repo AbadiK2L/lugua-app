@@ -1,9 +1,20 @@
 import { shikomoriQuestionsA1Path } from "./shikomori/questions-a1";
-import type { Concept, LearningBlock, LinguisticExample } from "../../types/learning";
+import type {
+  Assessment,
+  Chapter,
+  Concept,
+  LearningBlock,
+  LinguisticExample,
+} from "../../types/learning";
 
 export type ConceptDetails = {
   block: LearningBlock;
   concept: Concept;
+};
+
+export type AssessmentDetails = {
+  chapter: Chapter;
+  assessment: Assessment;
 };
 
 export function findConceptDetails(conceptId: string | undefined): ConceptDetails | undefined {
@@ -23,6 +34,28 @@ export function findConceptDetails(conceptId: string | undefined): ConceptDetail
   }
 
   return undefined;
+}
+
+export function findAssessmentDetails(
+  assessmentId: string | undefined,
+): AssessmentDetails | undefined {
+  if (!assessmentId) {
+    return undefined;
+  }
+
+  const chapter = shikomoriQuestionsA1Path.chapter;
+  const assessment = chapter.assessments?.find(
+    (candidate) => candidate.id === assessmentId,
+  );
+
+  if (!assessment) {
+    return undefined;
+  }
+
+  return {
+    chapter,
+    assessment,
+  };
 }
 
 export function findExampleById(

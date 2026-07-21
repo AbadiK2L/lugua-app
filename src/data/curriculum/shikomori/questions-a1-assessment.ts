@@ -17,7 +17,8 @@ export const shikomoriQuestionsA1Assessment: Assessment = {
     "Contrôle local pour vérifier la compréhension et l'usage des mots interrogatifs fournis.",
   deliveryMode: "local",
   supportsAudioRecording: false,
-  supportsAutomaticCorrection: false,
+  supportsAutomaticCorrection: true,
+  correctionMode: "partial",
   scoreCategories: [
     {
       id: "listening_comprehension",

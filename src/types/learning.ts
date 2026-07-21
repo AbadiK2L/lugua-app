@@ -22,6 +22,8 @@ export type ValidationStatus = "draft" | "reviewed" | "validated";
 
 export type AudioStatus = "missing" | "draft" | "validated";
 
+export type AssessmentCorrectionMode = "none" | "partial" | "full";
+
 export type ContentSource =
   | "user_provided"
   | "orelc"
@@ -178,6 +180,7 @@ export type Assessment = LinguisticContent & {
   deliveryMode: "local";
   supportsAudioRecording: boolean;
   supportsAutomaticCorrection: boolean;
+  correctionMode: AssessmentCorrectionMode;
   scoreCategories: AssessmentScoreCategory[];
   sections: AssessmentSection[];
 };

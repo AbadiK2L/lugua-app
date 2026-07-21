@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { shikomoriQuestionsA1Path } from "@/src/data/curriculum";
-import type { LearningBlock, MasteryStatus } from "@/src/types/learning";
+import type { Assessment, LearningBlock, MasteryStatus } from "@/src/types/learning";
 
 const masteryByBlockId: Record<string, MasteryStatus> = {
   "questions-a1-block-place": "learning",
@@ -47,9 +47,17 @@ function getPrimaryConcept(block: LearningBlock) {
   return block.concepts[0];
 }
 
+function getAssessmentExerciseCount(assessment: Assessment) {
+  return assessment.sections.reduce(
+    (total, section) => total + section.exercises.length,
+    0,
+  );
+}
+
 export default function LessonsScreen() {
   const router = useRouter();
   const { language, level, skill, chapter } = shikomoriQuestionsA1Path;
+  const assessments = chapter.assessments ?? [];
 
   function openConcept(block: LearningBlock) {
     const concept = getPrimaryConcept(block);
@@ -62,6 +70,15 @@ export default function LessonsScreen() {
       pathname: "../concept/[id]",
       params: {
         id: concept.id,
+      },
+    });
+  }
+
+  function openAssessment(assessment: Assessment) {
+    router.push({
+      pathname: "../assessment/[assessmentId]",
+      params: {
+        assessmentId: assessment.id,
       },
     });
   }
@@ -153,6 +170,57 @@ export default function LessonsScreen() {
           })}
         </View>
       </View>
+
+      {assessments.length > 0 ? (
+        <View style={styles.assessmentSection}>
+          <Text style={styles.sectionTitle}>Contrôle de fin de chapitre</Text>
+
+          <View style={styles.list}>
+            {assessments.map((assessment) => {
+              const exerciseCount = getAssessmentExerciseCount(assessment);
+
+              return (
+                <View key={assessment.id} style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <View style={styles.cardText}>
+                      <Text style={styles.blockTitle}>{assessment.title}</Text>
+                      {assessment.description ? (
+                        <Text style={styles.description}>{assessment.description}</Text>
+                      ) : null}
+                    </View>
+
+                    {assessment.validationStatus === "draft" ? (
+                      <View style={styles.draftBadge}>
+                        <Text style={styles.draftBadgeText}>Version provisoire</Text>
+                      </View>
+                    ) : null}
+                  </View>
+
+                  <View style={styles.statsRow}>
+                    <Text style={styles.statText}>Niveau {assessment.level}</Text>
+                    <Text style={styles.statDivider}>•</Text>
+                    <Text style={styles.statText}>
+                      {formatCount(assessment.sections.length, "section", "sections")}
+                    </Text>
+                    <Text style={styles.statDivider}>•</Text>
+                    <Text style={styles.statText}>
+                      {formatCount(exerciseCount, "exercice", "exercices")}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    style={styles.button}
+                    onPress={() => openAssessment(assessment)}
+                  >
+                    <Text style={styles.buttonText}>Commencer le contrôle</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      ) : null}
     </ScrollView>
   );
 }
@@ -221,6 +289,10 @@ const styles = StyleSheet.create({
   section: {
     gap: 12,
   },
+  assessmentSection: {
+    gap: 12,
+    marginTop: 24,
+  },
   sectionTitle: {
     color: "#f8fafc",
     fontSize: 20,
@@ -272,6 +344,20 @@ const styles = StyleSheet.create({
     maxWidth: 124,
   },
   masteryText: {
+    fontSize: 12,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  draftBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#3f2d12",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    maxWidth: 132,
+  },
+  draftBadgeText: {
+    color: "#fbbf24",
     fontSize: 12,
     fontWeight: "900",
     textAlign: "center",
