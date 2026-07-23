@@ -1,155 +1,291 @@
 import { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  SectionList,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+  type SectionListRenderItemInfo,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { WordCategory, words } from "@/src/data/words";
+import { DictionaryAlphabetBar } from "@/src/components/dictionary/DictionaryAlphabetBar";
+import { DictionaryEntryCard } from "@/src/components/dictionary/DictionaryEntryCard";
+import { DictionaryFilters } from "@/src/components/dictionary/DictionaryFilters";
+import { DICTIONARY_COLORS } from "@/src/components/dictionary/dictionaryColors";
+import { DictionarySearchBar } from "@/src/components/dictionary/DictionarySearchBar";
+import { DictionaryState } from "@/src/components/dictionary/DictionaryState";
+import {
+  dictionaryEntries,
+  filterDictionaryEntries,
+} from "@/src/data/dictionary";
+import {
+  getDictionaryInitial,
+  groupDictionaryEntriesByInitial,
+  SHIKOMORI_ALPHABET,
+  type DictionaryLetterSelection,
+  type DictionarySection,
+  type ShikomoriAlphabetLetter,
+} from "@/src/data/dictionary/alphabet";
+import { useBottomNavigationLayout } from "@/src/contexts/BottomNavigationLayoutContext";
+import type { DictionaryEntry, DictionaryPartOfSpeech } from "@/src/types/dictionary";
 
-const categoryLabels: Record<WordCategory, string> = {
-  greetings: "Salutations",
-  food: "Nourriture",
-  family: "Famille",
-  numbers: "Nombres",
-  places: "Lieux",
-  common: "Courant",
-};
+function formatEntryCount(count: number) {
+  if (count === 0) {
+    return "Aucune entrée";
+  }
 
-export default function VocabularyScreen() {
+  return count + " " + (count > 1 ? "entrées" : "entrée");
+}
+
+export default function DictionaryScreen() {
+  const { bottomAreaHeight } = useBottomNavigationLayout();
+  const { width } = useWindowDimensions();
+  const horizontalPadding = width < 390 ? 16 : 20;
   const [search, setSearch] = useState("");
+  const [selectedLetter, setSelectedLetter] =
+    useState<DictionaryLetterSelection>("all");
+  const [selectedPartsOfSpeech, setSelectedPartsOfSpeech] = useState<
+    DictionaryPartOfSpeech[]
+  >([]);
 
-  const filteredWords = useMemo(() => {
-    const query = search.trim().toLowerCase();
+  const filteredEntries = useMemo(
+    () =>
+      filterDictionaryEntries({
+        entries: dictionaryEntries,
+        query: search,
+        selectedPartsOfSpeech,
+        selectedLetter,
+      }),
+    [search, selectedLetter, selectedPartsOfSpeech],
+  );
+  const entriesForAvailableLetters = useMemo(
+    () =>
+      filterDictionaryEntries({
+        entries: dictionaryEntries,
+        query: search,
+        selectedPartsOfSpeech,
+        selectedLetter: "all",
+      }),
+    [search, selectedPartsOfSpeech],
+  );
+  const availableLetters = useMemo(
+    () =>
+      new Set(
+        entriesForAvailableLetters
+          .map((entry) => getDictionaryInitial(entry.headword))
+          .filter(
+            (initial): initial is ShikomoriAlphabetLetter =>
+              initial !== "OTHER" && SHIKOMORI_ALPHABET.includes(initial),
+          ),
+      ),
+    [entriesForAvailableLetters],
+  );
+  const sections = useMemo(
+    () => groupDictionaryEntriesByInitial(filteredEntries),
+    [filteredEntries],
+  );
+  const hasActiveControls =
+    Boolean(search.trim()) ||
+    selectedLetter !== "all" ||
+    selectedPartsOfSpeech.length > 0;
 
-    if (!query) {
-      return words;
-    }
+  function resetAll() {
+    setSearch("");
+    setSelectedLetter("all");
+    setSelectedPartsOfSpeech([]);
+  }
 
-    return words.filter(
-      (word) =>
-        word.word.toLowerCase().includes(query) ||
-        word.translation.toLowerCase().includes(query) ||
-        categoryLabels[word.category].toLowerCase().includes(query)
+  function renderHeader() {
+    return (
+      <View style={styles.header}>
+        <View style={styles.intro}>
+          <Text style={styles.title}>Dictionnaire</Text>
+          <Text style={styles.subtitle}>
+            Explore le shiKomori et retrouve les mots utilisés dans les leçons.
+          </Text>
+          <Text style={styles.disclaimer}>Données locales de démonstration</Text>
+        </View>
+
+        <View style={styles.searchSlot}>
+          <DictionarySearchBar
+            value={search}
+            onChangeText={setSearch}
+            onClear={() => setSearch("")}
+          />
+        </View>
+
+        <Text style={styles.direction}>shiKomori ↔ Français</Text>
+
+        <View style={styles.alphabetSlot}>
+          <DictionaryAlphabetBar
+            selectedLetter={selectedLetter}
+            availableLetters={availableLetters}
+            onSelectLetter={setSelectedLetter}
+          />
+        </View>
+
+        <View style={styles.resultsHeader}>
+          <Text style={styles.resultsCount}>
+            {formatEntryCount(filteredEntries.length)}
+          </Text>
+          <DictionaryFilters
+            selectedPartsOfSpeech={selectedPartsOfSpeech}
+            onApply={setSelectedPartsOfSpeech}
+            onReset={() => setSelectedPartsOfSpeech([])}
+          />
+        </View>
+      </View>
     );
-  }, [search]);
+  }
+
+  function renderEmpty() {
+    return (
+      <DictionaryState
+        variant={hasActiveControls ? "no_results" : "empty"}
+        query={search.trim() ? search : undefined}
+        onReset={hasActiveControls ? resetAll : undefined}
+      />
+    );
+  }
+
+  function renderSectionHeader({
+    section,
+  }: {
+    section: DictionarySection;
+  }) {
+    return (
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>
+          {section.title === "OTHER" ? "Autres" : section.title}
+        </Text>
+      </View>
+    );
+  }
+
+  function renderItem({
+    item,
+  }: SectionListRenderItemInfo<DictionaryEntry, DictionarySection>) {
+    return <DictionaryEntryCard entry={item} />;
+  }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.header}>
-        <Text style={styles.title}>Vocabulaire</Text>
-        <Text style={styles.subtitle}>Recherche un mot en shikomori ou en français.</Text>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
+      <View style={styles.screen}>
+        <View style={[styles.content, { paddingHorizontal: horizontalPadding }]}>
+          <SectionList
+            style={styles.list}
+            sections={sections}
+            keyExtractor={(entry) => entry.id}
+            renderItem={renderItem}
+            renderSectionHeader={renderSectionHeader}
+            ListHeaderComponent={renderHeader}
+            ListEmptyComponent={renderEmpty}
+            ItemSeparatorComponent={EntrySeparator}
+            stickySectionHeadersEnabled={false}
+            contentContainerStyle={[
+              styles.listContent,
+              { paddingBottom: bottomAreaHeight + 24 },
+            ]}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
       </View>
-
-      <TextInput
-        value={search}
-        onChangeText={setSearch}
-        placeholder="Rechercher"
-        placeholderTextColor="#64748b"
-        autoCapitalize="none"
-        autoCorrect={false}
-        style={styles.searchInput}
-      />
-
-      <View style={styles.list}>
-        {filteredWords.map((word) => (
-          <View key={word.id} style={styles.wordCard}>
-            <View style={styles.wordHeader}>
-              <Text style={styles.word}>{word.word}</Text>
-              <View style={styles.categoryBadge}>
-                <Text style={styles.categoryText}>{categoryLabels[word.category]}</Text>
-              </View>
-            </View>
-
-            <Text style={styles.translation}>{word.translation}</Text>
-            {word.example ? <Text style={styles.example}>{word.example}</Text> : null}
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+    </SafeAreaView>
   );
 }
 
+function EntrySeparator() {
+  return <View style={styles.separator} />;
+}
+
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    backgroundColor: "#0b1120",
+    backgroundColor: DICTIONARY_COLORS.navy,
+  },
+  screen: {
+    flex: 1,
+    width: "100%",
+    backgroundColor: DICTIONARY_COLORS.navy,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 64,
-    paddingBottom: 24,
-    gap: 16,
+    width: "100%",
+    maxWidth: 760,
+    alignSelf: "center",
+    flex: 1,
+  },
+  list: {
+    width: "100%",
+  },
+  listContent: {
+    width: "100%",
+    alignItems: "stretch",
+    paddingTop: 16,
   },
   header: {
+    width: "100%",
+    marginBottom: 16,
+  },
+  intro: {
     gap: 6,
   },
   title: {
-    color: "#f8fafc",
-    fontSize: 32,
-    fontWeight: "900",
+    color: DICTIONARY_COLORS.textPrimary,
+    fontSize: 30,
+    fontWeight: "800",
   },
   subtitle: {
-    color: "#94a3b8",
+    color: DICTIONARY_COLORS.textSecondary,
     fontSize: 15,
     fontWeight: "600",
-    lineHeight: 21,
+    lineHeight: 22,
   },
-  searchInput: {
-    minHeight: 52,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#334155",
-    backgroundColor: "#111827",
-    color: "#f8fafc",
-    paddingHorizontal: 16,
-    fontSize: 16,
+  disclaimer: {
+    color: DICTIONARY_COLORS.textMuted,
+    fontSize: 12,
     fontWeight: "700",
+    marginTop: 2,
   },
-  list: {
-    gap: 12,
+  searchSlot: {
+    width: "100%",
+    marginTop: 16,
   },
-  wordCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#1f2937",
-    backgroundColor: "#111827",
-    padding: 16,
-    gap: 8,
+  direction: {
+    color: DICTIONARY_COLORS.accent,
+    fontSize: 13,
+    fontWeight: "800",
+    marginTop: 10,
   },
-  wordHeader: {
+  alphabetSlot: {
+    width: "100%",
+    marginTop: 6,
+  },
+  resultsHeader: {
+    width: "100%",
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
+    marginTop: 12,
   },
-  word: {
+  resultsCount: {
     flex: 1,
-    color: "#f8fafc",
-    fontSize: 22,
-    fontWeight: "900",
+    color: DICTIONARY_COLORS.textSecondary,
+    fontSize: 13,
+    fontWeight: "800",
   },
-  categoryBadge: {
-    borderRadius: 999,
-    backgroundColor: "#172033",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+  sectionHeader: {
+    width: "100%",
+    paddingTop: 16,
+    paddingBottom: 8,
   },
-  categoryText: {
-    color: "#38bdf8",
-    fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase",
-  },
-  translation: {
-    color: "#cbd5e1",
+  sectionTitle: {
+    color: DICTIONARY_COLORS.accent,
     fontSize: 16,
     fontWeight: "800",
   },
-  example: {
-    color: "#94a3b8",
-    fontSize: 14,
-    fontWeight: "600",
-    lineHeight: 20,
+  separator: {
+    height: 10,
   },
 });

@@ -22,6 +22,7 @@ const MAPPING = {
   'xmark': 'close',
   'checkmark': 'check',
   'chevron.down': 'keyboard-arrow-down',
+  'line.3.horizontal.decrease.circle': 'filter-list',
   'chart.bar.fill': 'bar-chart',
   'doc.text.fill': 'description',
   headphones: 'headset',

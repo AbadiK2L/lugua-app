@@ -8,6 +8,39 @@ import type {
 
 export type DictionaryProvider = "local_curriculum" | "orelc";
 
+export type DictionaryPartOfSpeech =
+  | "noun"
+  | "verb"
+  | "adjective"
+  | "adverb"
+  | "pronoun"
+  | "preposition"
+  | "conjunction"
+  | "interjection"
+  | "question_word"
+  | "expression"
+  | "other";
+
+const dictionaryPartOfSpeechLabels: Record<DictionaryPartOfSpeech, string> = {
+  noun: "Nom",
+  verb: "Verbe",
+  adjective: "Adjectif",
+  adverb: "Adverbe",
+  pronoun: "Pronom",
+  preposition: "Préposition",
+  conjunction: "Conjonction",
+  interjection: "Interjection",
+  question_word: "Mot interrogatif",
+  expression: "Expression",
+  other: "Autre",
+};
+
+export function getDictionaryPartOfSpeechLabel(
+  partOfSpeech: DictionaryPartOfSpeech,
+): string {
+  return dictionaryPartOfSpeechLabels[partOfSpeech];
+}
+
 export type DictionaryExample = {
   id: string;
   targetLanguageText: string;
@@ -26,6 +59,7 @@ export type DictionaryEntry = {
 
   provider: DictionaryProvider;
   conceptKind: LearningConceptKind;
+  partOfSpeech?: DictionaryPartOfSpeech;
   level: CEFRLevel;
 
   chapterId: string;

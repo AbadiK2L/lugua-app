@@ -1,7 +1,16 @@
 import { resolveInteractiveLesson } from "@/src/data/curriculum";
 import { shikomoriQuestionsA1Chapter } from "@/src/data/curriculum/shikomori/questions-a1";
+import {
+  getDictionaryInitial,
+  sortDictionaryEntries,
+  type DictionaryLetterSelection,
+} from "@/src/data/dictionary/alphabet";
 import type { Concept, LinguisticExample } from "@/src/types/learning";
-import type { DictionaryEntry, DictionaryExample } from "@/src/types/dictionary";
+import type {
+  DictionaryEntry,
+  DictionaryExample,
+  DictionaryPartOfSpeech,
+} from "@/src/types/dictionary";
 
 const punctuationPattern = /[^\p{L}\p{N}]+/gu;
 const diacriticPattern = /[\u0300-\u036f]/g;
@@ -110,6 +119,7 @@ function createDictionaryEntry(
     ),
     provider: "local_curriculum",
     conceptKind: concept.lessonConfig?.conceptKind ?? "vocabulary",
+    partOfSpeech: "question_word",
     level: chapter.level,
     chapterId: chapter.id,
     chapterTitle: chapter.title,
@@ -127,11 +137,11 @@ function createDictionaryEntry(
   };
 }
 
-export const dictionaryEntries: DictionaryEntry[] = shikomoriQuestionsA1Chapter.blocks
-  .flatMap((block) =>
+export const dictionaryEntries: DictionaryEntry[] = sortDictionaryEntries(
+  shikomoriQuestionsA1Chapter.blocks.flatMap((block) =>
     block.concepts.map((concept) => createDictionaryEntry(concept, block.title)),
-  )
-  .sort((first, second) => first.headword.localeCompare(second.headword, "fr"));
+  ),
+);
 
 export function getDictionaryEntryById(id: string) {
   return dictionaryEntries.find((entry) => entry.id === id);
@@ -143,8 +153,8 @@ export function searchDictionaryEntries(
 ) {
   const normalizedQuery = normalizeDictionaryText(query);
 
-  return [...entries]
-    .filter((entry) => {
+  return sortDictionaryEntries(
+    entries.filter((entry) => {
       if (!normalizedQuery) {
         return true;
       }
@@ -152,6 +162,41 @@ export function searchDictionaryEntries(
       return entry.searchableTerms.some((term) =>
         normalizeDictionaryText(term).includes(normalizedQuery),
       );
-    })
-    .sort((first, second) => first.headword.localeCompare(second.headword, "fr"));
+    }),
+  );
+}
+
+export type DictionaryFilterInput = {
+  entries: DictionaryEntry[];
+  query: string;
+  selectedPartsOfSpeech: DictionaryPartOfSpeech[];
+  selectedLetter: DictionaryLetterSelection;
+};
+
+export function filterDictionaryEntries({
+  entries,
+  query,
+  selectedPartsOfSpeech,
+  selectedLetter,
+}: DictionaryFilterInput): DictionaryEntry[] {
+  const normalizedQuery = normalizeDictionaryText(query);
+
+  return sortDictionaryEntries(
+    entries.filter((entry) => {
+      const matchesQuery =
+        !normalizedQuery ||
+        entry.searchableTerms.some((term) =>
+          normalizeDictionaryText(term).includes(normalizedQuery),
+        );
+      const matchesPartOfSpeech =
+        selectedPartsOfSpeech.length === 0 ||
+        (entry.partOfSpeech !== undefined &&
+          selectedPartsOfSpeech.includes(entry.partOfSpeech));
+      const matchesLetter =
+        selectedLetter === "all" ||
+        getDictionaryInitial(entry.headword) === selectedLetter;
+
+      return matchesQuery && matchesPartOfSpeech && matchesLetter;
+    }),
+  );
 }
