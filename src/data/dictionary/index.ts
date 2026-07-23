@@ -41,15 +41,11 @@ function addUniqueMeaning(meanings: string[], candidate: string) {
   }
 }
 
-function getFrenchMeanings(concept: Concept) {
+function getExplicitFrenchMeanings(concept: Concept) {
   const meanings: string[] = [];
 
   for (const usage of concept.lessonConfig?.usages ?? []) {
     addUniqueMeaning(meanings, usage.meaning);
-  }
-
-  for (const example of concept.examples) {
-    addUniqueMeaning(meanings, example.frenchText);
   }
 
   return meanings;
@@ -99,7 +95,7 @@ function createDictionaryEntry(
   blockTitle: string,
 ): DictionaryEntry {
   const chapter = shikomoriQuestionsA1Chapter;
-  const frenchMeanings = getFrenchMeanings(concept);
+  const frenchMeanings = getExplicitFrenchMeanings(concept);
   const examples = concept.examples.map((example) =>
     toDictionaryExample(concept, example),
   );

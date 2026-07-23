@@ -21,6 +21,38 @@ export type DictionaryPartOfSpeech =
   | "expression"
   | "other";
 
+export type DictionaryDetailTab =
+  | "definitions"
+  | "synonyms"
+  | "conjugation"
+  | "etymology"
+  | "map";
+
+export type DictionarySynonym = {
+  id: string;
+  label: string;
+  note?: string;
+};
+
+export type DictionaryConjugationForm = {
+  label: string;
+  value: string;
+};
+
+export type DictionaryConjugationGroup = {
+  id: string;
+  title: string;
+  forms: DictionaryConjugationForm[];
+};
+
+export type DictionaryGeographicUsage = {
+  id: string;
+  variety: string;
+  region?: string;
+  status: "confirmed" | "draft";
+  note?: string;
+};
+
 const dictionaryPartOfSpeechLabels: Record<DictionaryPartOfSpeech, string> = {
   noun: "Nom",
   verb: "Verbe",
@@ -61,6 +93,11 @@ export type DictionaryEntry = {
   conceptKind: LearningConceptKind;
   partOfSpeech?: DictionaryPartOfSpeech;
   level: CEFRLevel;
+
+  synonyms?: DictionarySynonym[];
+  etymology?: string;
+  conjugation?: DictionaryConjugationGroup[];
+  geographicUsage?: DictionaryGeographicUsage[];
 
   chapterId: string;
   chapterTitle: string;
