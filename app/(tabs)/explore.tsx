@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { router } from "expo-router";
 import {
   SectionList,
   StyleSheet,
@@ -15,6 +16,7 @@ import { DictionaryFilters } from "@/src/components/dictionary/DictionaryFilters
 import { DICTIONARY_COLORS } from "@/src/components/dictionary/dictionaryColors";
 import { DictionarySearchBar } from "@/src/components/dictionary/DictionarySearchBar";
 import { DictionaryState } from "@/src/components/dictionary/DictionaryState";
+import { LuguaAppHeader } from "@/src/components/navigation/LuguaAppHeader";
 import {
   dictionaryEntries,
   filterDictionaryEntries,
@@ -99,6 +101,7 @@ export default function DictionaryScreen() {
   function renderHeader() {
     return (
       <View style={styles.header}>
+        <LuguaAppHeader onPressCurrentLesson={openNextLesson} />
         <View style={styles.intro}>
           <Text style={styles.title}>Dictionnaire</Text>
           <Text style={styles.subtitle}>
@@ -137,6 +140,17 @@ export default function DictionaryScreen() {
         </View>
       </View>
     );
+  }
+
+  function openNextLesson() {
+    const nextLesson = dictionaryEntries.find((entry) => entry.lessonAvailable);
+
+    if (nextLesson?.conceptId) {
+      router.push(`/lesson/${nextLesson.conceptId}`);
+      return;
+    }
+
+    router.push("/(tabs)/lessons");
   }
 
   function renderEmpty() {

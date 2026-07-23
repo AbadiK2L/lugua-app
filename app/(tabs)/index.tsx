@@ -1,10 +1,8 @@
 import { router } from "expo-router";
-import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { HomeHeader } from "@/src/components/home/HomeHeader";
-import { type LanguageSelectionId } from "@/src/components/home/LanguageSelector";
+import { LuguaAppHeader } from "@/src/components/navigation/LuguaAppHeader";
 import { DictionaryAccessRow } from "@/src/components/home/DictionaryAccessRow";
 import { LearningHeroCard } from "@/src/components/home/LearningHeroCard";
 import { LearningOverviewCard } from "@/src/components/home/LearningOverviewCard";
@@ -27,8 +25,6 @@ const levelAudienceLabel = level.level === "A1" ? "Débutant" : level.title;
 const levelNumberLabel = level.level === "A1" ? "Niveau 1" : level.title;
 
 export default function Home() {
-  const [selectedLanguage, setSelectedLanguage] =
-    useState<LanguageSelectionId>("shikomori");
   const { bottomAreaHeight } = useBottomNavigationLayout();
 
   function openNextLesson() {
@@ -55,11 +51,7 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.column}>
-            <HomeHeader
-              language={selectedLanguage}
-              onLanguageChange={setSelectedLanguage}
-              onOpenLesson={openNextLesson}
-            />
+            <LuguaAppHeader onPressCurrentLesson={openNextLesson} />
 
             <LearningHeroCard
               levelCode={level.title}
