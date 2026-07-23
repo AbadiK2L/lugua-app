@@ -14,6 +14,9 @@ export function LuguaTabBar({ state, descriptors, navigation }: BottomTabBarProp
   const { setBottomAreaHeight } = useBottomNavigationLayout();
   const currentRouteName = state.routes[state.index]?.name;
   const isHome = currentRouteName === "index";
+  const visibleRoutes = state.routes
+    .map((route, index) => ({ route, index }))
+    .filter(({ route }) => route.name !== "profile");
 
   return (
     <View
@@ -28,7 +31,7 @@ export function LuguaTabBar({ state, descriptors, navigation }: BottomTabBarProp
     >
       {currentRouteName === "index" ? <HomeBottomDock /> : null}
       <View style={styles.tabs}>
-        {state.routes.map((route, index) => {
+        {visibleRoutes.map(({ route, index }) => {
           const descriptor = descriptors[route.key];
           const options = descriptor.options;
           const isFocused = state.index === index;
@@ -38,9 +41,9 @@ export function LuguaTabBar({ state, descriptors, navigation }: BottomTabBarProp
               : options.title ?? route.name;
           const color = isFocused
             ? options.tabBarActiveTintColor ??
-              (isHome ? HOME_COLORS.accent : "#f4c95d")
+              HOME_COLORS.accent
             : options.tabBarInactiveTintColor ??
-              (isHome ? HOME_COLORS.textSecondary : "#8797b5");
+              HOME_COLORS.textSecondary;
 
           function onPress() {
             const event = navigation.emit({
@@ -74,7 +77,7 @@ export function LuguaTabBar({ state, descriptors, navigation }: BottomTabBarProp
                 {label}
               </Text>
               {isFocused ? (
-                <View style={[styles.activeMark, isHome && styles.homeActiveMark]} />
+                <View style={styles.activeMark} />
               ) : null}
             </HapticTab>
           );
@@ -116,10 +119,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 2,
     borderRadius: 1,
-    backgroundColor: "#f4c95d",
-    marginTop: 1,
-  },
-  homeActiveMark: {
     backgroundColor: HOME_COLORS.accent,
+    marginTop: 1,
   },
 });

@@ -29,16 +29,25 @@ export default function TabLayout() {
               options={{
                 title: "Dictionnaire",
                 tabBarIcon: ({ color }) => (
-                  <IconSymbol size={28} name="paperplane.fill" color={color} />
+                  <IconSymbol size={28} name="book.fill" color={color} />
                 ),
               }}
             />
             <Tabs.Screen
               name="lessons"
               options={{
-                title: "Parcours",
+                title: "Scénarios",
                 tabBarIcon: ({ color }) => (
-                  <IconSymbol size={28} name="book.fill" color={color} />
+                  <IconSymbol size={28} name="bubble.left.fill" color={color} />
+                ),
+              }}
+            />
+            <Tabs.Screen
+              name="conversation"
+              options={{
+                title: "Conversation",
+                tabBarIcon: ({ color }) => (
+                  <IconSymbol size={28} name="headphones" color={color} />
                 ),
               }}
             />

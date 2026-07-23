@@ -69,7 +69,7 @@ const actionItems: HomeActionItem[] = [
     subtitle: nextLesson
       ? `Prochaine notion : ${nextLesson.headword}`
       : "Aucune leçon disponible pour le moment.",
-    actionLabel: nextLesson ? "Commencer" : "Voir le parcours",
+    actionLabel: nextLesson ? "Commencer" : "Voir les scénarios",
     onPress: openNextLesson,
   },
   {
