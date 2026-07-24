@@ -1,0 +1,50 @@
+import { ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import type { ReactNode } from "react";
+
+import { HOME_COLORS } from "@/src/components/home/homeColors";
+import { TeacherAppHeader } from "@/src/components/navigation/TeacherAppHeader";
+import { useBottomNavigationLayout } from "@/src/contexts/BottomNavigationLayoutContext";
+
+export function TeacherScreenShell({ children }: { children: ReactNode }) {
+  const { bottomAreaHeight } = useBottomNavigationLayout();
+
+  return (
+    <SafeAreaView style={styles.safe} edges={["top"]}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: bottomAreaHeight + 24 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.column}>
+          <TeacherAppHeader />
+          {children}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: HOME_COLORS.navy,
+  },
+  scroll: {
+    flex: 1,
+  },
+  content: {
+    width: "100%",
+    paddingHorizontal: 20,
+    paddingTop: 12,
+  },
+  column: {
+    width: "100%",
+    maxWidth: 860,
+    alignSelf: "center",
+    gap: 20,
+  },
+});

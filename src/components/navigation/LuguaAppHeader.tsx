@@ -20,7 +20,7 @@ export function LuguaAppHeader({ onPressCurrentLesson }: LuguaAppHeaderProps) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Ouvrir le profil élève"
-        onPress={() => router.push("/(tabs)/profile")}
+        onPress={() => router.push("/student/profile")}
         style={({ pressed }) => [styles.profileButton, pressed && styles.pressed]}
       >
         <IconSymbol name="person.fill" size={20} color={HOME_COLORS.accent} />

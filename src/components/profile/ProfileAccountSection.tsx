@@ -5,7 +5,7 @@ import type { ProfileSharedActions } from "@/src/types/profile";
 type ProfileAccountSectionProps = {
   actions: Pick<
     ProfileSharedActions,
-    "onOpenAbout" | "onOpenSources" | "onOpenPrivacy"
+    "onExitDemo" | "onOpenAbout" | "onOpenSources" | "onOpenPrivacy"
   >;
 };
 
@@ -36,6 +36,14 @@ export function ProfileAccountSection({
         value="En préparation"
         onPress={actions.onOpenPrivacy}
         accessibilityHint="Affiche l’état de préparation de la confidentialité"
+        isLast={false}
+      />
+      <ProfileMenuRow
+        icon="rectangle.portrait.and.arrow.right"
+        label="Quitter le mode de démonstration"
+        value="Retour à l’accueil"
+        onPress={actions.onExitDemo}
+        accessibilityHint="Efface la session locale et revient à la sélection du rôle"
         isLast
       />
     </ProfileSection>

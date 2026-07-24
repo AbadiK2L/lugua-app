@@ -52,7 +52,7 @@ export default function ScenariosScreen() {
       return;
     }
 
-    router.push("/(tabs)/lessons");
+    router.push("/student/scenarios");
   }
 
   function openScenario(scenarioId: string) {

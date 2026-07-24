@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { router, type Href, useLocalSearchParams } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ResultScreen() {
@@ -42,7 +42,7 @@ export default function ResultScreen() {
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.secondaryButton}
-          onPress={() => router.replace("/(tabs)")}
+          onPress={() => router.replace("/student" as Href)}
         >
           <Text style={styles.secondaryButtonText}>Retour accueil</Text>
         </TouchableOpacity>

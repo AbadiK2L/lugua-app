@@ -22,6 +22,7 @@ const MAPPING = {
   'chevron.left': 'arrow-back',
   'person.fill': 'person',
   'person.3.fill': 'groups',
+  'square.grid.2x2.fill': 'dashboard',
   'graduationcap.fill': 'school',
   'books.vertical.fill': 'library-books',
   'megaphone.fill': 'campaign',
@@ -42,6 +43,7 @@ const MAPPING = {
   'bubble.left.fill': 'chat-bubble',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'rectangle.portrait.and.arrow.right': 'logout',
 } as IconMapping;
 
 /**

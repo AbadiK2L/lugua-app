@@ -57,7 +57,7 @@ function openNextLesson() {
     return;
   }
 
-  router.push("/(tabs)/lessons");
+  router.push("/student/scenarios");
 }
 
 const actionItems: HomeActionItem[] = [

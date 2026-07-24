@@ -61,7 +61,7 @@ export default function ConversationScreen() {
       return;
     }
 
-    router.push("/(tabs)/lessons");
+    router.push("/student/scenarios");
   }
 
   function resetFilters() {

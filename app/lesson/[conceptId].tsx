@@ -394,7 +394,7 @@ function ResultContent({
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.secondaryButton}
-          onPress={() => router.replace("/(tabs)/lessons")}
+          onPress={() => router.replace("/student/scenarios")}
         >
           <Text style={styles.secondaryButtonText}>Retour au parcours</Text>
         </TouchableOpacity>

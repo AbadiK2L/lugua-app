@@ -211,7 +211,7 @@ function renderMissingAssessment() {
       <TouchableOpacity
         activeOpacity={0.85}
         style={styles.secondaryButton}
-        onPress={() => router.replace("/(tabs)/lessons")}
+        onPress={() => router.replace("/student/scenarios")}
       >
         <Text style={styles.secondaryButtonText}>Retour au parcours</Text>
       </TouchableOpacity>
@@ -274,7 +274,7 @@ function IntroContent({ assessment, exerciseCount, onStart }: IntroContentProps)
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.secondaryButton}
-          onPress={() => router.replace("/(tabs)/lessons")}
+          onPress={() => router.replace("/student/scenarios")}
         >
           <Text style={styles.secondaryButtonText}>Retour au parcours</Text>
         </TouchableOpacity>
@@ -719,7 +719,7 @@ export default function AssessmentScreen() {
           correctedResults={correctedResults}
           oralResult={oralResult}
           onRestart={handleRestart}
-          onBackToPath={() => router.replace("/(tabs)/lessons")}
+          onBackToPath={() => router.replace("/student/scenarios")}
         />
       ) : null}
     </ScrollView>

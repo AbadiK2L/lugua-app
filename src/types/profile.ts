@@ -2,6 +2,7 @@ export type UserRole = "student" | "teacher";
 
 export type ProfileSharedActions = {
   onEditProfile: () => void;
+  onExitDemo: () => void;
   onOpenNotifications: () => void;
   onOpenAbout: () => void;
   onOpenSources: () => void;

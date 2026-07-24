@@ -150,7 +150,7 @@ export default function DictionaryScreen() {
       return;
     }
 
-    router.push("/(tabs)/lessons");
+    router.push("/student/scenarios");
   }
 
   function renderEmpty() {

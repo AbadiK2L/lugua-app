@@ -36,7 +36,7 @@ export default function Home() {
       return;
     }
 
-    router.push("/(tabs)/lessons");
+    router.push("/student/scenarios");
   }
 
   return (
@@ -69,7 +69,7 @@ export default function Home() {
             />
 
             <DictionaryAccessRow
-              onPress={() => router.push("/(tabs)/explore")}
+              onPress={() => router.push("/student/dictionary")}
             />
           </View>
         </ScrollView>
