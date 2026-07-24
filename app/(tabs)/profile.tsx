@@ -4,31 +4,32 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { LanguageSelector, languageOptions } from "@/src/components/home/LanguageSelector";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
-import { ProfileIdentityCard } from "@/src/components/profile/ProfileIdentityCard";
-import { ProfileMenuRow } from "@/src/components/profile/ProfileMenuRow";
-import { ProfileProgressCard } from "@/src/components/profile/ProfileProgressCard";
-import { ProfileSection } from "@/src/components/profile/ProfileSection";
+import { ProfileRolePreviewSwitch } from "@/src/components/profile/ProfileRolePreviewSwitch";
+import { StudentProfileContent } from "@/src/components/profile/StudentProfileContent";
+import { TeacherProfileContent } from "@/src/components/profile/TeacherProfileContent";
 import { useBottomNavigationLayout } from "@/src/contexts/BottomNavigationLayoutContext";
 import { useLanguageSelection } from "@/src/contexts/LanguageSelectionContext";
+import { languageOptions } from "@/src/components/home/LanguageSelector";
 import { shikomoriQuestionsA1Path } from "@/src/data/curriculum";
 import { dictionaryEntries } from "@/src/data/dictionary";
+import type { UserRole } from "@/src/types/profile";
 
 const chapter = shikomoriQuestionsA1Path?.chapter;
 const language = shikomoriQuestionsA1Path?.language;
 const level = shikomoriQuestionsA1Path?.level;
-const availableConceptCount =
+const conceptCount =
   chapter?.blocks.reduce((total, block) => total + block.concepts.length, 0) ?? 0;
 const firstAvailableLesson = dictionaryEntries.find((entry) => entry.lessonAvailable);
 
 export default function ProfileScreen() {
+  const [activeRole, setActiveRole] = useState<UserRole>("student");
   const [isBackFocused, setIsBackFocused] = useState(false);
   const { bottomAreaHeight } = useBottomNavigationLayout();
   const { selectedLanguage, setSelectedLanguage } = useLanguageSelection();
   const selectedLanguageOption =
     languageOptions.find((option) => option.id === selectedLanguage) ?? languageOptions[0];
-  const currentLanguage = language?.name ?? selectedLanguageOption.label;
+  const languageLabel = language?.name ?? selectedLanguageOption.label;
   const currentVariety =
     selectedLanguage === "shikomori"
       ? selectedLanguageOption.detail
@@ -52,65 +53,105 @@ export default function ProfileScreen() {
     router.replace("/(tabs)/lessons");
   }
 
+  function showAlert(title: string, message: string) {
+    Alert.alert(title, message);
+  }
+
   function showEditProfile() {
-    Alert.alert(
+    showAlert(
       "Modification du profil",
       "Cette fonction sera disponible prochainement.",
     );
   }
 
-  function showAssignments() {
-    Alert.alert("Devoirs", "Aucun devoir disponible pour le moment.");
-  }
+  const sharedActions = {
+    onEditProfile: showEditProfile,
+    onOpenNotifications: () =>
+      showAlert(
+        "Notifications",
+        activeRole === "teacher"
+          ? "Les alertes liées aux classes, élèves et devoirs seront disponibles prochainement."
+          : "Les rappels et alertes seront disponibles prochainement.",
+      ),
+    onOpenAbout: () =>
+      showAlert(
+        "À propos de Lugua",
+        "Lugua est une application d’apprentissage des langues centrée sur les usages réels, les leçons, le dictionnaire et la compréhension orale.",
+      ),
+    onOpenSources: () =>
+      showAlert(
+        "Sources linguistiques",
+        "Contenus actuels\nCurriculum local Lugua\n\nConnexion ORELC\nNon active\n\nLes futures données externes seront affichées avec leur source, leur statut de validation et leur variété linguistique.",
+      ),
+    onOpenPrivacy: () =>
+      showAlert(
+        "Confidentialité",
+        "La politique de confidentialité complète sera ajoutée avant la publication de l’application.",
+      ),
+  };
 
-  function showAiTraining() {
-    Alert.alert(
-      "Entraînement IA",
-      "Cette fonction sera disponible prochainement.",
-    );
-  }
+  const studentActions = {
+    ...sharedActions,
+    onOpenLessons: openFirstLesson,
+    onOpenAssignments: () =>
+      showAlert("Devoirs", "Aucun devoir disponible pour le moment."),
+    onOpenAiTraining: () =>
+      showAlert(
+        "Entraînement IA",
+        "Cette fonction sera disponible prochainement.",
+      ),
+    onOpenSavedWords: () =>
+      showAlert(
+        "Mots enregistrés",
+        "Les favoris du dictionnaire seront disponibles prochainement.",
+      ),
+    onOpenAudioSettings: () =>
+      showAlert(
+        "Audio et sous-titres",
+        "Ces réglages seront disponibles prochainement.",
+      ),
+  };
 
-  function showSavedWords() {
-    Alert.alert(
-      "Mots enregistrés",
-      "Les favoris du dictionnaire seront disponibles prochainement.",
-    );
-  }
-
-  function showAudioSettings() {
-    Alert.alert(
-      "Audio et sous-titres",
-      "Ces réglages seront disponibles prochainement.",
-    );
-  }
-
-  function showNotifications() {
-    Alert.alert(
-      "Notifications",
-      "Les rappels et alertes seront disponibles prochainement.",
-    );
-  }
-
-  function showAbout() {
-    Alert.alert(
-      "À propos de Lugua",
-      "Lugua est une application d’apprentissage des langues centrée sur les usages réels, les leçons, le dictionnaire et la compréhension orale.",
-    );
-  }
-
-  function showSources() {
-    Alert.alert(
-      "Sources linguistiques",
-      "Contenus actuels\nCurriculum local Lugua\n\nConnexion ORELC\nNon active\n\nLes futures données externes seront affichées avec leur source, leur statut de validation et leur variété linguistique.",
-    );
-  }
-
-  function showPrivacy() {
-    Alert.alert(
-      "Confidentialité",
-      "La politique de confidentialité complète sera ajoutée avant la publication de l’application.",
-    );
-  }
+  const teacherActions = {
+    ...sharedActions,
+    onOpenClasses: () =>
+      showAlert(
+        "Mes classes",
+        "La gestion des classes sera disponible prochainement.",
+      ),
+    onOpenStudents: () =>
+      showAlert(
+        "Mes élèves",
+        "Le suivi des élèves sera disponible prochainement.",
+      ),
+    onCreateAssignment: () =>
+      showAlert(
+        "Créer un devoir",
+        "La création et l’attribution de devoirs seront disponibles prochainement.",
+      ),
+    onOpenAssignments: () =>
+      showAlert("Mes devoirs", "Aucun devoir n’a encore été créé."),
+    onOpenContent: () =>
+      showAlert(
+        "Mes contenus",
+        "La création de contenus pédagogiques sera disponible prochainement.",
+      ),
+    onOpenStudentTracking: () =>
+      showAlert(
+        "Suivi des élèves",
+        "Les statistiques et la progression des élèves seront disponibles prochainement.",
+      ),
+    onSendAnnouncement: () =>
+      showAlert(
+        "Envoyer une annonce",
+        "La communication avec les classes sera disponible prochainement.",
+      ),
+    onAddResource: () =>
+      showAlert(
+        "Ajouter une ressource",
+        "L’ajout de documents, d’audios et de vidéos sera disponible prochainement.",
+      ),
+  };
 
   return (
     <View style={styles.root}>
@@ -128,6 +169,7 @@ export default function ProfileScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Retour à la page précédente"
+                accessibilityState={{ disabled: false }}
                 onPress={handleBack}
                 onFocus={() => setIsBackFocused(true)}
                 onBlur={() => setIsBackFocused(false)}
@@ -140,132 +182,31 @@ export default function ProfileScreen() {
                 <IconSymbol name="chevron.left" size={20} color={HOME_COLORS.accent} />
                 <Text style={styles.backLabel}>Retour</Text>
               </Pressable>
-              <Text style={styles.topBarTitle}>Profil élève</Text>
+              <Text style={styles.topBarTitle}>Profil</Text>
               <View style={styles.topBarSide} />
             </View>
 
-            <ProfileIdentityCard
-              languageLabel={currentLanguage}
-              onEdit={showEditProfile}
-            />
+            <ProfileRolePreviewSwitch value={activeRole} onChange={setActiveRole} />
 
-            <ProfileProgressCard
-              rows={[
-                { label: "Niveau actuel", value: level?.level ?? "—" },
-                {
-                  label: "Notions disponibles",
-                  value:
-                    availableConceptCount > 0
-                      ? String(availableConceptCount)
-                      : "Aucune",
-                },
-                { label: "Leçons terminées", value: "—" },
-                { label: "Série", value: "—" },
-              ]}
-            />
-
-            <ProfileSection title="Mon apprentissage">
-              <ProfileMenuRow
-                icon="book.fill"
-                label="Mes leçons"
-                value={
-                  availableConceptCount > 0
-                    ? `${availableConceptCount} notions`
-                    : "Aucune"
-                }
-                onPress={openFirstLesson}
-                accessibilityHint="Ouvre la première leçon disponible ou les scénarios"
-                isLast={false}
+            {activeRole === "student" ? (
+              <StudentProfileContent
+                languageLabel={languageLabel}
+                selectedLanguage={selectedLanguage}
+                currentVariety={currentVariety}
+                conceptCount={conceptCount}
+                currentLevel={level?.level ?? "—"}
+                onChangeLanguage={setSelectedLanguage}
+                actions={studentActions}
               />
-              <ProfileMenuRow
-                icon="doc.text.fill"
-                label="Mes devoirs"
-                value="Aucun"
-                onPress={showAssignments}
-                accessibilityHint="Affiche l’état des devoirs"
-                isLast={false}
+            ) : (
+              <TeacherProfileContent
+                languageLabel={languageLabel}
+                selectedLanguage={selectedLanguage}
+                currentVariety={currentVariety}
+                onChangeLanguage={setSelectedLanguage}
+                actions={teacherActions}
               />
-              <ProfileMenuRow
-                icon="bubble.left.fill"
-                label="Entraînement IA"
-                value="Bientôt"
-                onPress={showAiTraining}
-                accessibilityHint="Affiche la disponibilité de l’entraînement IA"
-                isLast={false}
-              />
-              <ProfileMenuRow
-                icon="bookmark.fill"
-                label="Mots enregistrés"
-                value="Aucun"
-                onPress={showSavedWords}
-                accessibilityHint="Affiche la disponibilité des favoris"
-                isLast
-              />
-            </ProfileSection>
-
-            <ProfileSection title="Préférences">
-              <ProfileMenuRow
-                icon="book.fill"
-                label="Langue étudiée"
-                value={currentLanguage}
-                isLast={false}
-              />
-              <ProfileMenuRow
-                icon="globe"
-                label="Variété"
-                value={currentVariety}
-                trailing={
-                  <LanguageSelector
-                    value={selectedLanguage}
-                    onChange={setSelectedLanguage}
-                  />
-                }
-                isLast={false}
-              />
-              <ProfileMenuRow
-                icon="speaker.wave.2.fill"
-                label="Audio et sous-titres"
-                value="Bientôt"
-                onPress={showAudioSettings}
-                accessibilityHint="Affiche la disponibilité des réglages audio"
-                isLast={false}
-              />
-              <ProfileMenuRow
-                icon="bell.fill"
-                label="Notifications"
-                value="Bientôt"
-                onPress={showNotifications}
-                accessibilityHint="Affiche la disponibilité des notifications"
-                isLast
-              />
-            </ProfileSection>
-
-            <ProfileSection title="Compte">
-              <ProfileMenuRow
-                icon="info.circle.fill"
-                label="À propos de Lugua"
-                value="Lugua"
-                onPress={showAbout}
-                accessibilityHint="Affiche les informations sur Lugua"
-                isLast={false}
-              />
-              <ProfileMenuRow
-                icon="book.fill"
-                label="Sources linguistiques"
-                value="Curriculum local"
-                onPress={showSources}
-                accessibilityHint="Affiche les sources linguistiques actuelles"
-                isLast={false}
-              />
-              <ProfileMenuRow
-                icon="lock.fill"
-                label="Confidentialité"
-                value="En préparation"
-                onPress={showPrivacy}
-                accessibilityHint="Affiche l’état de préparation de la confidentialité"
-                isLast
-              />
-            </ProfileSection>
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -300,7 +241,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    position: "relative",
   },
   topBarSide: {
     width: 112,

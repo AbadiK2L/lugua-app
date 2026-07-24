@@ -55,6 +55,7 @@ export function ProfileMenuRow({
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled: false }}
         onPress={onPress}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}

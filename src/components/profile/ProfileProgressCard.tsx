@@ -9,12 +9,16 @@ export type ProfileProgressRow = {
 
 type ProfileProgressCardProps = {
   rows: ProfileProgressRow[];
+  title?: string;
 };
 
-export function ProfileProgressCard({ rows }: ProfileProgressCardProps) {
+export function ProfileProgressCard({
+  rows,
+  title = "Progression",
+}: ProfileProgressCardProps) {
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Progression</Text>
+      <Text style={styles.title}>{title}</Text>
       <View style={styles.rows}>
         {rows.map((row, index) => (
           <View

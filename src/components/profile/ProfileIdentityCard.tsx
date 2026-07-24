@@ -3,15 +3,20 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
+import type { UserRole } from "@/src/types/profile";
 
 type ProfileIdentityCardProps = {
-  languageLabel: string;
-  onEdit: () => void;
+  title: string;
+  subtitle: string;
+  role: UserRole;
+  onPressEdit: () => void;
 };
 
 export function ProfileIdentityCard({
-  languageLabel,
-  onEdit,
+  title,
+  subtitle,
+  role,
+  onPressEdit,
 }: ProfileIdentityCardProps) {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -21,15 +26,16 @@ export function ProfileIdentityCard({
         <View style={styles.avatar}>
           <IconSymbol name="person.fill" size={34} color={HOME_COLORS.accent} />
         </View>
-        <Text style={styles.title}>Mon profil</Text>
-        <Text style={styles.subtitle}>Élève · {languageLabel}</Text>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Modifier le profil"
+        accessibilityLabel={`Modifier le profil ${role === "teacher" ? "professeur" : "élève"}`}
         accessibilityHint="Affiche la disponibilité de la modification du profil"
-        onPress={onEdit}
+        accessibilityState={{ disabled: false }}
+        onPress={onPressEdit}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         style={({ pressed }) => [
