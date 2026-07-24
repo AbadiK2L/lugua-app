@@ -4,10 +4,17 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { TeacherEmptyState } from "@/src/components/teacher/TeacherEmptyState";
 import { TeacherScreenShell } from "@/src/components/teacher/TeacherScreenShell";
+import { useTeacherClasses } from "@/src/contexts/TeacherClassesContext";
 import { useTeacherCourseDrafts } from "@/src/contexts/TeacherCourseDraftsContext";
 
 export default function TeacherDashboardScreen() {
+  const { classes } = useTeacherClasses();
   const { drafts } = useTeacherCourseDrafts();
+  const activeClasses = classes.filter((teacherClass) => teacherClass.status === "active");
+  const studentCount = classes.reduce(
+    (total, teacherClass) => total + teacherClass.students.length,
+    0,
+  );
 
   return (
     <TeacherScreenShell>
@@ -22,9 +29,9 @@ export default function TeacherDashboardScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Vue d’ensemble</Text>
         <View style={styles.overview}>
-          <OverviewRow label="Classes actives" value="Aucune donnée" />
-          <OverviewRow label="Élèves" value="Aucune donnée" />
-          <OverviewRow label="Devoirs à suivre" value="Aucun" />
+          <OverviewRow label="Classes actives" value={String(activeClasses.length)} />
+          <OverviewRow label="Élèves" value={String(studentCount)} />
+          <OverviewRow label="Devoirs publiés" value="—" />
           <OverviewRow
             label="Brouillons de cours"
             value={drafts.length ? String(drafts.length) : "Aucun"}
@@ -38,9 +45,7 @@ export default function TeacherDashboardScreen() {
         <View style={styles.actions}>
           <QuickAction
             label="Créer une classe"
-            onPress={() =>
-              Alert.alert("Créer une classe", "La création de classes sera disponible prochainement.")
-            }
+            onPress={() => router.push({ pathname: "/teacher/classes", params: { create: "1" } })}
           />
           <QuickAction
             label="Créer un cours"

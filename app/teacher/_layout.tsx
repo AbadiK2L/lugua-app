@@ -4,6 +4,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { TeacherTabBar } from "@/src/components/navigation/TeacherTabBar";
 import { BottomNavigationLayoutProvider } from "@/src/contexts/BottomNavigationLayoutContext";
 import { useSessionPreview } from "@/src/contexts/SessionPreviewContext";
+import { TeacherClassesProvider } from "@/src/contexts/TeacherClassesContext";
 import { TeacherCourseDraftsProvider } from "@/src/contexts/TeacherCourseDraftsContext";
 
 export default function TeacherLayout() {
@@ -19,11 +20,12 @@ export default function TeacherLayout() {
 
   return (
     <TeacherCourseDraftsProvider>
-      <BottomNavigationLayoutProvider>
-        <Tabs
-          tabBar={(props) => <TeacherTabBar {...props} />}
-          screenOptions={{ headerShown: false }}
-        >
+      <TeacherClassesProvider>
+        <BottomNavigationLayoutProvider>
+          <Tabs
+            tabBar={(props) => <TeacherTabBar {...props} />}
+            screenOptions={{ headerShown: false }}
+          >
           <Tabs.Screen
             name="index"
             options={{
@@ -69,9 +71,11 @@ export default function TeacherLayout() {
               ),
             }}
           />
-          <Tabs.Screen name="course-builder" options={{ href: null }} />
-        </Tabs>
-      </BottomNavigationLayoutProvider>
+            <Tabs.Screen name="course-builder" options={{ href: null }} />
+            <Tabs.Screen name="class/[classId]" options={{ href: null }} />
+          </Tabs>
+        </BottomNavigationLayoutProvider>
+      </TeacherClassesProvider>
     </TeacherCourseDraftsProvider>
   );
 }

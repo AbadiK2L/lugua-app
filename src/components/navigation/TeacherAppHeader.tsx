@@ -36,8 +36,12 @@ export function TeacherAppHeader() {
       return;
     }
 
+    if (id === "class") {
+      router.push({ pathname: "/teacher/classes", params: { create: "1" } });
+      return;
+    }
+
     const messages: Record<string, [string, string]> = {
-      class: ["Créer une classe", "La création de classes sera disponible prochainement."],
       assignment: ["Créer un devoir", "La création de devoirs sera disponible prochainement."],
       resource: ["Ajouter une ressource", "L’ajout de ressources sera disponible prochainement."],
     };
