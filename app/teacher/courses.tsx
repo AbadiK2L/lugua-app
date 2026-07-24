@@ -1,134 +1,159 @@
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { HOME_COLORS } from "@/src/components/home/homeColors";
-import { TeacherEmptyState } from "@/src/components/teacher/TeacherEmptyState";
+import { getFirstInteractiveConcept, luguaProgramChapter } from "@/src/components/teacher/courses/luguaProgram";
+import { LuguaProgramSection } from "@/src/components/teacher/courses/LuguaProgramSection";
+import {
+  TeacherCoursesModeSwitch,
+  type TeacherCoursesMode,
+} from "@/src/components/teacher/courses/TeacherCoursesModeSwitch";
+import { TeacherDraftCoursesSection } from "@/src/components/teacher/courses/TeacherDraftCoursesSection";
 import { TeacherScreenShell } from "@/src/components/teacher/TeacherScreenShell";
-import { TeacherSegmentedControl } from "@/src/components/teacher/TeacherSegmentedControl";
-import { shikomoriQuestionsA1Path } from "@/src/data/curriculum";
+import { useTeacherCourseDrafts } from "@/src/contexts/TeacherCourseDraftsContext";
+import type { TeacherCourseDraft } from "@/src/types/teacher";
 
-const { chapter, language, level } = shikomoriQuestionsA1Path;
-const concepts = chapter.blocks.flatMap((block) => block.concepts);
+type CoursesParams = {
+  mode?: string | string[];
+  notice?: string | string[];
+};
+
+function getParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 export default function TeacherCoursesScreen() {
-  const [view, setView] = useState("program");
+  const params = useLocalSearchParams<CoursesParams>();
+  const { drafts, createDraft, deleteDraft } = useTeacherCourseDrafts();
+  const requestedMode = getParam(params.mode) === "my_courses" ? "my_courses" : "lugua_program";
+  const [mode, setMode] = useState<TeacherCoursesMode>(requestedMode);
+  const [noticeVisible, setNoticeVisible] = useState(getParam(params.notice) === "saved");
+
+  useEffect(() => {
+    setMode(requestedMode);
+    if (getParam(params.notice) === "saved") {
+      setNoticeVisible(true);
+    }
+  }, [params.mode, params.notice, requestedMode]);
+
+  function openBuilder(origin: "lugua_program" | "teacher_created") {
+    if (origin === "lugua_program") {
+      router.push({
+        pathname: "/teacher/course-builder",
+        params: { origin, chapterId: luguaProgramChapter.id },
+      });
+      return;
+    }
+
+    router.push({ pathname: "/teacher/course-builder", params: { origin } });
+  }
+
+  function consultProgram() {
+    const firstConcept = getFirstInteractiveConcept();
+
+    if (!firstConcept) {
+      Alert.alert("Programme indisponible", "Aucune leçon interactive n’est disponible pour le moment.");
+      return;
+    }
+
+    router.push({ pathname: "/lesson/[conceptId]", params: { conceptId: firstConcept.id } });
+  }
+
+  function duplicateDraft(draft: TeacherCourseDraft) {
+    createDraft({
+      ...draft,
+      title: `Copie de ${draft.title}`,
+    });
+    setMode("my_courses");
+    Alert.alert("Cours dupliqué", "Une copie locale a été ajoutée à Mes cours.");
+  }
+
+  function confirmDelete(draft: TeacherCourseDraft) {
+    Alert.alert(
+      "Supprimer ce brouillon ?",
+      `« ${draft.title} » sera retiré de cette session.`,
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => deleteDraft(draft.id),
+        },
+      ],
+    );
+  }
 
   return (
     <TeacherScreenShell>
       <View style={styles.intro}>
         <Text style={styles.eyebrow}>ESPACE PROFESSEUR</Text>
         <Text style={styles.title}>Cours</Text>
-        <Text style={styles.subtitle}>Pars d’un programme validé ou prépare ton propre brouillon local.</Text>
+        <Text style={styles.subtitle}>
+          Utilise le programme Lugua ou construis tes propres cours.
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Créer un cours"
+          onPress={() => openBuilder("teacher_created")}
+          style={({ pressed }) => [styles.createButton, pressed && styles.pressed]}
+        >
+          <Text style={styles.createButtonText}>Créer un cours</Text>
+        </Pressable>
       </View>
 
-      <TeacherSegmentedControl
-        value={view}
-        onChange={setView}
-        options={[
-          { id: "program", label: "Programme Lugua" },
-          { id: "mine", label: "Mes cours" },
-        ]}
-      />
+      {noticeVisible ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Fermer la confirmation d’enregistrement"
+          onPress={() => setNoticeVisible(false)}
+          style={styles.notice}
+        >
+          <Text style={styles.noticeTitle}>Cours ajouté</Text>
+          <Text style={styles.noticeText}>
+            Le brouillon est disponible dans Mes cours pour cette session.
+          </Text>
+        </Pressable>
+      ) : null}
 
-      {view === "program" ? <ProgramPreview /> : <MyCourses />}
+      <TeacherCoursesModeSwitch value={mode} onChange={setMode} />
+
+      {mode === "lugua_program" ? (
+        <LuguaProgramSection
+          onConsult={consultProgram}
+          onUseAsBase={() => openBuilder("lugua_program")}
+        />
+      ) : (
+        <TeacherDraftCoursesSection
+          drafts={drafts}
+          onCreateFromZero={() => openBuilder("teacher_created")}
+          onUseProgram={() => openBuilder("lugua_program")}
+          onOpen={(draft) =>
+            router.push({
+              pathname: "/teacher/course-builder",
+              params: { draftId: draft.id, preview: "1" },
+            })
+          }
+          onEdit={(draft) =>
+            router.push({ pathname: "/teacher/course-builder", params: { draftId: draft.id } })
+          }
+          onDuplicate={duplicateDraft}
+          onDelete={confirmDelete}
+        />
+      )}
     </TeacherScreenShell>
   );
 }
 
-function ProgramPreview() {
-  return (
-    <View style={styles.section}>
-      <View style={styles.programCard}>
-        <Text style={styles.cardEyebrow}>PROGRAMME LUGUA</Text>
-        <Text style={styles.cardTitle}>Poser une question</Text>
-        <Text style={styles.cardMeta}>
-          {language.name} · {level.level} · {chapter.title}
-        </Text>
-        <Text style={styles.cardDescription}>
-          Les notions de ce programme viennent du curriculum local et restent consultables sans publication.
-        </Text>
-        <View style={styles.conceptList}>
-          {concepts.map((concept, index) => (
-            <View key={concept.id} style={styles.conceptRow}>
-              <Text style={styles.conceptIndex}>{String(index + 1).padStart(2, "0")}</Text>
-              <Text style={styles.conceptTitle}>{concept.title}</Text>
-            </View>
-          ))}
-        </View>
-        <View style={styles.buttonRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Consulter le programme Lugua"
-            onPress={() =>
-              Alert.alert(
-                "Programme Lugua",
-                `${concepts.length} notions locales sont disponibles dans le chapitre ${chapter.title}.`,
-              )
-            }
-            style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
-          >
-            <Text style={styles.secondaryButtonText}>Consulter</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Utiliser le programme Lugua"
-            onPress={() => router.push("/teacher/course-builder?origin=lugua_program")}
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
-          >
-            <Text style={styles.primaryButtonText}>Utiliser ce programme</Text>
-          </Pressable>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function MyCourses() {
-  return (
-    <View style={styles.section}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Créer un cours"
-        onPress={() => router.push("/teacher/course-builder")}
-        style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
-      >
-        <Text style={styles.primaryButtonText}>Créer un cours</Text>
-      </Pressable>
-      <TeacherEmptyState
-        title="Aucun cours pour le moment"
-        description="Les brouillons locaux que tu prépareras apparaîtront ici après une future sauvegarde."
-      />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  intro: { gap: 6 },
+  intro: { gap: 7 },
   eyebrow: { color: HOME_COLORS.accent, fontSize: 12, fontWeight: "900" },
   title: { color: HOME_COLORS.textPrimary, fontSize: 30, fontWeight: "900" },
   subtitle: { color: HOME_COLORS.textSecondary, fontSize: 15, fontWeight: "600", lineHeight: 22 },
-  section: { gap: 12 },
-  programCard: {
-    gap: 12,
-    borderWidth: 1,
-    borderColor: HOME_COLORS.accent,
-    borderRadius: 16,
-    backgroundColor: HOME_COLORS.card,
-    padding: 16,
-  },
-  cardEyebrow: { color: HOME_COLORS.accent, fontSize: 11, fontWeight: "900", letterSpacing: 0.7 },
-  cardTitle: { color: HOME_COLORS.textPrimary, fontSize: 22, fontWeight: "900" },
-  cardMeta: { color: HOME_COLORS.accentMuted, fontSize: 13, fontWeight: "800" },
-  cardDescription: { color: HOME_COLORS.textSecondary, fontSize: 14, fontWeight: "600", lineHeight: 21 },
-  conceptList: { gap: 4, borderTopWidth: 1, borderTopColor: HOME_COLORS.border, paddingTop: 8 },
-  conceptRow: { minHeight: 38, flexDirection: "row", alignItems: "center", gap: 12 },
-  conceptIndex: { width: 24, color: HOME_COLORS.textMuted, fontSize: 12, fontWeight: "800" },
-  conceptTitle: { flex: 1, color: HOME_COLORS.textPrimary, fontSize: 14, fontWeight: "800" },
-  buttonRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  primaryButton: { minHeight: 46, alignItems: "center", justifyContent: "center", borderRadius: 10, backgroundColor: HOME_COLORS.accent, paddingHorizontal: 14 },
-  primaryButtonText: { color: HOME_COLORS.ink, fontSize: 13, fontWeight: "900" },
-  secondaryButton: { minHeight: 46, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 10, backgroundColor: HOME_COLORS.surface, paddingHorizontal: 14 },
-  secondaryButtonText: { color: HOME_COLORS.textPrimary, fontSize: 13, fontWeight: "900" },
+  createButton: { minHeight: 48, alignItems: "center", justifyContent: "center", alignSelf: "flex-start", borderRadius: 10, backgroundColor: HOME_COLORS.accent, paddingHorizontal: 16 },
+  createButtonText: { color: HOME_COLORS.ink, fontSize: 14, fontWeight: "900" },
+  notice: { gap: 4, borderWidth: 1, borderColor: HOME_COLORS.accent, borderRadius: 12, backgroundColor: HOME_COLORS.accentSoft, padding: 13 },
+  noticeTitle: { color: HOME_COLORS.textPrimary, fontSize: 14, fontWeight: "900" },
+  noticeText: { color: HOME_COLORS.textSecondary, fontSize: 13, fontWeight: "600", lineHeight: 19 },
   pressed: { opacity: 0.8 },
 });

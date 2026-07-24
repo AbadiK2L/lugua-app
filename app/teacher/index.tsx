@@ -1,10 +1,14 @@
+import { router } from "expo-router";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { TeacherEmptyState } from "@/src/components/teacher/TeacherEmptyState";
 import { TeacherScreenShell } from "@/src/components/teacher/TeacherScreenShell";
+import { useTeacherCourseDrafts } from "@/src/contexts/TeacherCourseDraftsContext";
 
 export default function TeacherDashboardScreen() {
+  const { drafts } = useTeacherCourseDrafts();
+
   return (
     <TeacherScreenShell>
       <View style={styles.intro}>
@@ -21,7 +25,11 @@ export default function TeacherDashboardScreen() {
           <OverviewRow label="Classes actives" value="Aucune donnée" />
           <OverviewRow label="Élèves" value="Aucune donnée" />
           <OverviewRow label="Devoirs à suivre" value="Aucun" />
-          <OverviewRow label="Cours publiés" value="Aucun" isLast />
+          <OverviewRow
+            label="Brouillons de cours"
+            value={drafts.length ? String(drafts.length) : "Aucun"}
+            isLast
+          />
         </View>
       </View>
 
@@ -36,9 +44,7 @@ export default function TeacherDashboardScreen() {
           />
           <QuickAction
             label="Créer un cours"
-            onPress={() =>
-              Alert.alert("Créer un cours", "Ouvre l’onglet Cours pour choisir un programme ou partir de zéro.")
-            }
+            onPress={() => router.push("/teacher/course-builder")}
           />
           <QuickAction
             label="Créer un devoir"

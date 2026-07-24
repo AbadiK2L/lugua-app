@@ -6,16 +6,22 @@ import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { TeacherAppHeader } from "@/src/components/navigation/TeacherAppHeader";
 import { useBottomNavigationLayout } from "@/src/contexts/BottomNavigationLayoutContext";
 
-export function TeacherScreenShell({ children }: { children: ReactNode }) {
+export function TeacherScreenShell({
+  children,
+  hideBottomNavigation = false,
+}: {
+  children: ReactNode;
+  hideBottomNavigation?: boolean;
+}) {
   const { bottomAreaHeight } = useBottomNavigationLayout();
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={hideBottomNavigation ? ["top", "bottom"] : ["top"]}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: bottomAreaHeight + 24 },
+          { paddingBottom: (hideBottomNavigation ? 0 : bottomAreaHeight) + 24 },
         ]}
         showsVerticalScrollIndicator={false}
       >
