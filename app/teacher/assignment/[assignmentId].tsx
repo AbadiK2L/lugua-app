@@ -277,7 +277,7 @@ export default function TeacherAssignmentDetailScreen() {
         >
           <Text style={styles.backText}>← Retour</Text>
         </Pressable>
-        <Text style={styles.demoLabel}>Mode de démonstration</Text>
+        <Text style={styles.demoLabel}>Données locales</Text>
       </View>
 
       <TeacherAssignmentSummaryCard

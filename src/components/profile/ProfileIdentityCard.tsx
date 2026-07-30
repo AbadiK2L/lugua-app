@@ -33,7 +33,7 @@ export function ProfileIdentityCard({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Modifier le profil ${role === "teacher" ? "professeur" : "élève"}`}
-        accessibilityHint="Affiche la disponibilité de la modification du profil"
+        accessibilityHint="Ouvre la modification du nom et de la variété préférée"
         accessibilityState={{ disabled: false }}
         onPress={onPressEdit}
         onFocus={() => setIsFocused(true)}
@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     color: HOME_COLORS.textPrimary,
     fontSize: 22,
     fontWeight: "900",
+    textAlign: "center",
   },
   subtitle: {
     color: HOME_COLORS.textSecondary,

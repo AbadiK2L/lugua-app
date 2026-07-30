@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
@@ -14,20 +21,66 @@ export const languageOptions = [
 
 export type LanguageSelectionId = (typeof languageOptions)[number]["id"];
 
+function isFailedSelection(
+  result: unknown,
+): result is { ok: false; message: string } {
+  return (
+    typeof result === "object" &&
+    result !== null &&
+    "ok" in result &&
+    result.ok === false &&
+    "message" in result &&
+    typeof result.message === "string"
+  );
+}
+
 type LanguageSelectorProps = {
   value: LanguageSelectionId;
-  onChange: (value: LanguageSelectionId) => void;
+  onChange: (value: LanguageSelectionId) => void | Promise<unknown>;
 };
 
 export function LanguageSelector({ value, onChange }: LanguageSelectorProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [applyingId, setApplyingId] =
+    useState<LanguageSelectionId | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const selectedOption = useMemo(
     () => languageOptions.find((option) => option.id === value) ?? languageOptions[0],
     [value],
   );
 
   function close() {
+    if (applyingId) {
+      return;
+    }
+
     setIsVisible(false);
+  }
+
+  async function selectLanguage(optionId: LanguageSelectionId) {
+    if (applyingId) {
+      return;
+    }
+
+    setApplyingId(optionId);
+    setError(null);
+
+    try {
+      const result = await onChange(optionId);
+
+      if (isFailedSelection(result)) {
+        setError(result.message);
+        return;
+      }
+
+      setIsVisible(false);
+    } catch {
+      setError(
+        "La variété n’a pas pu être enregistrée. Vérifie ta connexion puis réessaie.",
+      );
+    } finally {
+      setApplyingId(null);
+    }
   }
 
   return (
@@ -37,7 +90,10 @@ export function LanguageSelector({ value, onChange }: LanguageSelectorProps) {
         accessibilityLabel={`Langue d’apprentissage : ${selectedOption.label}`}
         accessibilityHint="Ouvre le sélecteur de langue et de variété"
         accessibilityState={{ expanded: isVisible }}
-        onPress={() => setIsVisible(true)}
+        onPress={() => {
+          setError(null);
+          setIsVisible(true);
+        }}
         style={({ pressed }) => [styles.trigger, pressed && styles.pressed]}
       >
         <Text style={styles.flag} accessibilityLabel="Drapeau des Comores">
@@ -72,6 +128,8 @@ export function LanguageSelector({ value, onChange }: LanguageSelectorProps) {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Fermer"
+                accessibilityState={{ disabled: applyingId !== null }}
+                disabled={applyingId !== null}
                 onPress={close}
                 style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
               >
@@ -88,10 +146,14 @@ export function LanguageSelector({ value, onChange }: LanguageSelectorProps) {
                     key={option.id}
                     accessibilityRole="radio"
                     accessibilityLabel={`${option.label} — ${option.detail}`}
-                    accessibilityState={{ selected: isSelected }}
+                    accessibilityState={{
+                      selected: isSelected,
+                      disabled: applyingId !== null,
+                      busy: applyingId === option.id,
+                    }}
+                    disabled={applyingId !== null}
                     onPress={() => {
-                      onChange(option.id);
-                      close();
+                      void selectLanguage(option.id);
                     }}
                     style={({ pressed }) => [
                       styles.option,
@@ -103,13 +165,29 @@ export function LanguageSelector({ value, onChange }: LanguageSelectorProps) {
                       <Text style={styles.optionLabel}>{option.label}</Text>
                       <Text style={styles.optionDetail}>— {option.detail}</Text>
                     </View>
-                    {isSelected ? (
+                    {applyingId === option.id ? (
+                      <ActivityIndicator
+                        accessibilityLabel="Enregistrement de la variété"
+                        color={HOME_COLORS.accent}
+                        size="small"
+                      />
+                    ) : isSelected ? (
                       <IconSymbol name="checkmark" size={21} color={HOME_COLORS.accent} />
                     ) : null}
                   </Pressable>
                 );
               })}
             </View>
+
+            {error ? (
+              <Text
+                accessibilityLiveRegion="assertive"
+                role="alert"
+                style={styles.error}
+              >
+                {error}
+              </Text>
+            ) : null}
 
             <Text style={styles.modalNote}>
               Le contenu spécifique à chaque variété sera ajouté progressivement.
@@ -233,5 +311,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 19,
     marginTop: 16,
+  },
+  error: {
+    color: "#f1a5ae",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 19,
+    marginTop: 14,
   },
 });

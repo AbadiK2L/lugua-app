@@ -1,10 +1,20 @@
-import { Redirect, Stack, type Href } from "expo-router";
+import { Redirect, type Href } from "expo-router";
+import type { ReactNode } from "react";
 
 import { AuthLoadingScreen } from "@/src/components/auth/AuthLoadingScreen";
 import { ProfileUnavailableScreen } from "@/src/components/auth/ProfileUnavailableScreen";
 import { useAuthSession } from "@/src/contexts/AuthSessionContext";
+import type { UserRole } from "@/src/types/profile";
 
-export default function AuthLayout() {
+type ProtectedRoleRouteProps = {
+  allowedRole: UserRole;
+  children: ReactNode;
+};
+
+export function ProtectedRoleRoute({
+  allowedRole,
+  children,
+}: ProtectedRoleRouteProps) {
   const {
     session,
     profile,
@@ -19,7 +29,11 @@ export default function AuthLayout() {
     return <AuthLoadingScreen />;
   }
 
-  if (session && !profile) {
+  if (!session) {
+    return <Redirect href="/auth/welcome" />;
+  }
+
+  if (!profile) {
     return (
       <ProfileUnavailableScreen
         isRetrying={isRefreshingProfile}
@@ -34,16 +48,10 @@ export default function AuthLayout() {
     );
   }
 
-  if (profile) {
+  if (profile.role !== allowedRole) {
     const destination = profile.role === "student" ? "/student" : "/teacher";
     return <Redirect href={destination as Href} />;
   }
 
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="welcome" />
-      <Stack.Screen name="sign-in" />
-      <Stack.Screen name="sign-up" />
-    </Stack>
-  );
+  return children;
 }

@@ -1,29 +1,20 @@
-import { Redirect, Tabs, type Href } from "expo-router";
+import { Tabs } from "expo-router";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ProtectedRoleRoute } from "@/src/components/auth/ProtectedRoleRoute";
 import { LuguaTabBar } from "@/src/components/navigation/LuguaTabBar";
 import { BottomNavigationLayoutProvider } from "@/src/contexts/BottomNavigationLayoutContext";
 import { HomeActionProvider } from "@/src/contexts/HomeActionContext";
-import { useSessionPreview } from "@/src/contexts/SessionPreviewContext";
 
 export default function StudentLayout() {
-  const { role } = useSessionPreview();
-
-  if (role === null) {
-    return <Redirect href="/auth/welcome" />;
-  }
-
-  if (role === "teacher") {
-    return <Redirect href={"/teacher" as Href} />;
-  }
-
   return (
-    <BottomNavigationLayoutProvider>
-      <HomeActionProvider>
-        <Tabs
-          tabBar={(props) => <LuguaTabBar {...props} />}
-          screenOptions={{ headerShown: false }}
-        >
+    <ProtectedRoleRoute allowedRole="student">
+      <BottomNavigationLayoutProvider>
+        <HomeActionProvider>
+          <Tabs
+            tabBar={(props) => <LuguaTabBar {...props} />}
+            screenOptions={{ headerShown: false }}
+          >
           <Tabs.Screen
             name="index"
             options={{
@@ -69,8 +60,9 @@ export default function StudentLayout() {
               ),
             }}
           />
-        </Tabs>
-      </HomeActionProvider>
-    </BottomNavigationLayoutProvider>
+          </Tabs>
+        </HomeActionProvider>
+      </BottomNavigationLayoutProvider>
+    </ProtectedRoleRoute>
   );
 }

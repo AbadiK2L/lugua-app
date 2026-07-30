@@ -960,7 +960,7 @@ function PreviewStep({
       ) : null}
 
       <View style={styles.demoCard}>
-        <Text style={styles.demoCardTitle}>Mode de démonstration</Text>
+        <Text style={styles.demoCardTitle}>Données locales</Text>
         <Text style={styles.demoCardText}>
           Ce devoir est conservé uniquement pendant cette session de
           démonstration.

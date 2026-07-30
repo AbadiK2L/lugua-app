@@ -6,35 +6,51 @@ import { ProfileProgressCard } from "@/src/components/profile/ProfileProgressCar
 import { ProfileSection } from "@/src/components/profile/ProfileSection";
 import type { LanguageSelectionId } from "@/src/components/home/LanguageSelector";
 import type { StudentProfileActions } from "@/src/types/profile";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 type StudentProfileContentProps = {
+  displayName: string;
   languageLabel: string;
   selectedLanguage: LanguageSelectionId;
   currentVariety: string;
   conceptCount: number;
   currentLevel: string;
-  onChangeLanguage: (language: LanguageSelectionId) => void;
+  statusMessage?: string | null;
+  onChangeLanguage: (
+    language: LanguageSelectionId,
+  ) => void | Promise<unknown>;
   actions: StudentProfileActions;
 };
 
 export function StudentProfileContent({
+  displayName,
   languageLabel,
   selectedLanguage,
   currentVariety,
   conceptCount,
   currentLevel,
+  statusMessage,
   onChangeLanguage,
   actions,
 }: StudentProfileContentProps) {
   return (
     <View style={styles.content}>
       <ProfileIdentityCard
-        title="Mon profil"
+        title={displayName || "Utilisateur Lugua"}
         subtitle={`Élève · ${languageLabel}`}
         role="student"
         onPressEdit={actions.onEditProfile}
       />
+
+      {statusMessage ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          role="status"
+          style={styles.status}
+        >
+          {statusMessage}
+        </Text>
+      ) : null}
 
       <ProfileProgressCard
         rows={[
@@ -128,5 +144,16 @@ export function StudentProfileContent({
 const styles = StyleSheet.create({
   content: {
     gap: 20,
+  },
+  status: {
+    borderWidth: 1,
+    borderColor: "#2f8052",
+    borderRadius: 12,
+    backgroundColor: "rgba(67, 209, 124, 0.12)",
+    color: "#b9f0c9",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 19,
+    padding: 13,
   },
 });

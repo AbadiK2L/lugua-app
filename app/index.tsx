@@ -1,17 +1,50 @@
 import { Redirect, type Href } from "expo-router";
 
-import { useSessionPreview } from "@/src/contexts/SessionPreviewContext";
+import { AuthLoadingScreen } from "@/src/components/auth/AuthLoadingScreen";
+import { ProfileUnavailableScreen } from "@/src/components/auth/ProfileUnavailableScreen";
+import { useAuthSession } from "@/src/contexts/AuthSessionContext";
 
 export default function EntryRedirect() {
-  const { role } = useSessionPreview();
+  const {
+    session,
+    profile,
+    isLoading,
+    isRefreshingProfile,
+    isSubmitting,
+    refreshProfile,
+    signOut,
+  } = useAuthSession();
 
-  if (role === "student") {
+  if (isLoading) {
+    return <AuthLoadingScreen />;
+  }
+
+  if (!session) {
+    return <Redirect href="/auth/welcome" />;
+  }
+
+  if (!profile) {
+    return (
+      <ProfileUnavailableScreen
+        isRetrying={isRefreshingProfile}
+        isSigningOut={isSubmitting}
+        onRetry={() => {
+          void refreshProfile();
+        }}
+        onSignOut={() => {
+          void signOut();
+        }}
+      />
+    );
+  }
+
+  if (profile.role === "student") {
     return <Redirect href={"/student" as Href} />;
   }
 
-  if (role === "teacher") {
+  if (profile.role === "teacher") {
     return <Redirect href={"/teacher" as Href} />;
   }
 
-  return <Redirect href="/auth/welcome" />;
+  return null;
 }

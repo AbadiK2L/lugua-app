@@ -86,7 +86,7 @@ export default function TeacherClassesScreen() {
       </View>
 
       <Text style={styles.demoNote}>
-        Mode de démonstration · Les classes et élèves créés ici seront supprimés au redémarrage complet de l’application.
+        Données locales · Les classes et élèves créés ici seront supprimés au redémarrage complet de l’application.
       </Text>
 
       <TeacherClassesFilterBar

@@ -380,7 +380,7 @@ export default function TeacherAssignmentsScreen() {
       </View>
 
       <Text style={styles.demoNote}>
-        Mode de démonstration · Les devoirs créés ici seront supprimés au
+        Données locales · Les devoirs créés ici seront supprimés au
         redémarrage complet de l’application.
       </Text>
 

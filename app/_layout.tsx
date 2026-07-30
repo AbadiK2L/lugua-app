@@ -4,8 +4,8 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { AuthSessionProvider } from "@/src/contexts/AuthSessionContext";
 import { LanguageSelectionProvider } from "@/src/contexts/LanguageSelectionContext";
-import { SessionPreviewProvider } from "@/src/contexts/SessionPreviewContext";
 
 export const unstable_settings = {
   anchor: "index",
@@ -13,11 +13,11 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   return (
-    <SessionPreviewProvider>
+    <AuthSessionProvider>
       <LanguageSelectionProvider>
         <RootNavigation />
       </LanguageSelectionProvider>
-    </SessionPreviewProvider>
+    </AuthSessionProvider>
   );
 }
 
@@ -27,20 +27,23 @@ function RootNavigation() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="auth" options={{ headerShown: false }} />
-          <Stack.Screen name="student" options={{ headerShown: false }} />
-          <Stack.Screen name="teacher" options={{ headerShown: false }} />
-          <Stack.Screen name="lesson/[conceptId]" options={{ headerShown: false }} />
-          <Stack.Screen name="concept/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="dictionary/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="assessment/[assessmentId]" options={{ headerShown: false }} />
-          <Stack.Screen name="quiz" options={{ headerShown: false }} />
-          <Stack.Screen name="result" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
-          />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="auth" options={{ headerShown: false }} />
+        <Stack.Screen name="student" options={{ headerShown: false }} />
+        <Stack.Screen name="teacher" options={{ headerShown: false }} />
+        <Stack.Screen name="lesson/[conceptId]" options={{ headerShown: false }} />
+        <Stack.Screen name="concept/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="dictionary/[id]" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="assessment/[assessmentId]"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="quiz" options={{ headerShown: false }} />
+        <Stack.Screen name="result" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="modal"
+          options={{ presentation: "modal", title: "Modal" }}
+        />
       </Stack>
       <StatusBar style="light" />
     </ThemeProvider>

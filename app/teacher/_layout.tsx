@@ -1,30 +1,21 @@
-import { Redirect, Tabs, type Href } from "expo-router";
+import { Tabs } from "expo-router";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ProtectedRoleRoute } from "@/src/components/auth/ProtectedRoleRoute";
 import { TeacherTabBar } from "@/src/components/navigation/TeacherTabBar";
 import { BottomNavigationLayoutProvider } from "@/src/contexts/BottomNavigationLayoutContext";
-import { useSessionPreview } from "@/src/contexts/SessionPreviewContext";
 import { TeacherAssignmentsProvider } from "@/src/contexts/TeacherAssignmentsContext";
 import { TeacherClassesProvider } from "@/src/contexts/TeacherClassesContext";
 import { TeacherCourseDraftsProvider } from "@/src/contexts/TeacherCourseDraftsContext";
 
 export default function TeacherLayout() {
-  const { role } = useSessionPreview();
-
-  if (role === null) {
-    return <Redirect href="/auth/welcome" />;
-  }
-
-  if (role === "student") {
-    return <Redirect href={"/student" as Href} />;
-  }
-
   return (
-    <TeacherCourseDraftsProvider>
-      <TeacherClassesProvider>
-        <TeacherAssignmentsProvider>
-          <BottomNavigationLayoutProvider>
-            <Tabs
+    <ProtectedRoleRoute allowedRole="teacher">
+      <TeacherCourseDraftsProvider>
+        <TeacherClassesProvider>
+          <TeacherAssignmentsProvider>
+            <BottomNavigationLayoutProvider>
+              <Tabs
               tabBar={(props) => <TeacherTabBar {...props} />}
               screenOptions={{ headerShown: false }}
             >
@@ -88,10 +79,11 @@ export default function TeacherLayout() {
                 name="assignment/[assignmentId]"
                 options={{ href: null }}
               />
-            </Tabs>
-          </BottomNavigationLayoutProvider>
-        </TeacherAssignmentsProvider>
-      </TeacherClassesProvider>
-    </TeacherCourseDraftsProvider>
+              </Tabs>
+            </BottomNavigationLayoutProvider>
+          </TeacherAssignmentsProvider>
+        </TeacherClassesProvider>
+      </TeacherCourseDraftsProvider>
+    </ProtectedRoleRoute>
   );
 }

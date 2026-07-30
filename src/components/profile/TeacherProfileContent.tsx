@@ -5,32 +5,48 @@ import { ProfileIdentityCard } from "@/src/components/profile/ProfileIdentityCar
 import { ProfileMenuRow } from "@/src/components/profile/ProfileMenuRow";
 import { ProfileSection } from "@/src/components/profile/ProfileSection";
 import { TeacherOverviewCard } from "@/src/components/profile/TeacherOverviewCard";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import type { TeacherProfileActions } from "@/src/types/profile";
 
 type TeacherProfileContentProps = {
+  displayName: string;
   languageLabel: string;
   selectedLanguage: LanguageSelectionId;
   currentVariety: string;
-  onChangeLanguage: (language: LanguageSelectionId) => void;
+  statusMessage?: string | null;
+  onChangeLanguage: (
+    language: LanguageSelectionId,
+  ) => void | Promise<unknown>;
   actions: TeacherProfileActions;
 };
 
 export function TeacherProfileContent({
+  displayName,
   languageLabel,
   selectedLanguage,
   currentVariety,
+  statusMessage,
   onChangeLanguage,
   actions,
 }: TeacherProfileContentProps) {
   return (
     <View style={styles.content}>
       <ProfileIdentityCard
-        title="Mon profil"
+        title={displayName || "Utilisateur Lugua"}
         subtitle={`Professeur · ${languageLabel}`}
         role="teacher"
         onPressEdit={actions.onEditProfile}
       />
+
+      {statusMessage ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          role="status"
+          style={styles.status}
+        >
+          {statusMessage}
+        </Text>
+      ) : null}
 
       <TeacherOverviewCard
         rows={[
@@ -148,5 +164,16 @@ export function TeacherProfileContent({
 const styles = StyleSheet.create({
   content: {
     gap: 20,
+  },
+  status: {
+    borderWidth: 1,
+    borderColor: "#2f8052",
+    borderRadius: 12,
+    backgroundColor: "rgba(67, 209, 124, 0.12)",
+    color: "#b9f0c9",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 19,
+    padding: 13,
   },
 });

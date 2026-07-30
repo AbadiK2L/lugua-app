@@ -1,13 +1,31 @@
-import { createContext, useContext, useMemo, useState, type PropsWithChildren } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type PropsWithChildren,
+} from "react";
 
 import {
   languageOptions,
   type LanguageSelectionId,
 } from "@/src/components/home/LanguageSelector";
+import {
+  type AuthActionResult,
+  useAuthSession,
+} from "@/src/contexts/AuthSessionContext";
+import {
+  getLanguageSelectionFromPreference,
+  getPreferenceFromLanguageSelection,
+} from "@/src/utils/languagePreference";
 
 type LanguageSelectionContextValue = {
   selectedLanguage: LanguageSelectionId;
-  setSelectedLanguage: (language: LanguageSelectionId) => void;
+  setSelectedLanguage: (
+    language: LanguageSelectionId,
+  ) => Promise<AuthActionResult>;
 };
 
 const LanguageSelectionContext = createContext<
@@ -15,11 +33,48 @@ const LanguageSelectionContext = createContext<
 >(undefined);
 
 export function LanguageSelectionProvider({ children }: PropsWithChildren) {
+  const { profile, updateProfile } = useAuthSession();
   const [selectedLanguage, setSelectedLanguage] =
     useState<LanguageSelectionId>(languageOptions[0].id);
+
+  useEffect(() => {
+    if (!profile) {
+      return;
+    }
+
+    const profileSelection = getLanguageSelectionFromPreference(
+      profile.preferredVariety,
+    );
+    setSelectedLanguage((current) =>
+      current === profileSelection ? current : profileSelection,
+    );
+  }, [profile]);
+
+  const persistSelectedLanguage = useCallback(
+    async (language: LanguageSelectionId) => {
+      if (language === selectedLanguage) {
+        return { ok: true } as const;
+      }
+
+      const result = await updateProfile({
+        preferredVariety: getPreferenceFromLanguageSelection(language),
+      });
+
+      if (result.ok) {
+        setSelectedLanguage(language);
+      }
+
+      return result;
+    },
+    [selectedLanguage, updateProfile],
+  );
+
   const value = useMemo(
-    () => ({ selectedLanguage, setSelectedLanguage }),
-    [selectedLanguage],
+    () => ({
+      selectedLanguage,
+      setSelectedLanguage: persistSelectedLanguage,
+    }),
+    [persistSelectedLanguage, selectedLanguage],
   );
 
   return (

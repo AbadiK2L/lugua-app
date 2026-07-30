@@ -5,7 +5,7 @@ import type { ProfileSharedActions } from "@/src/types/profile";
 type ProfileAccountSectionProps = {
   actions: Pick<
     ProfileSharedActions,
-    "onExitDemo" | "onOpenAbout" | "onOpenSources" | "onOpenPrivacy"
+    "onSignOut" | "onOpenAbout" | "onOpenSources" | "onOpenPrivacy"
   >;
 };
 
@@ -40,10 +40,10 @@ export function ProfileAccountSection({
       />
       <ProfileMenuRow
         icon="rectangle.portrait.and.arrow.right"
-        label="Quitter le mode de démonstration"
-        value="Retour à l’accueil"
-        onPress={actions.onExitDemo}
-        accessibilityHint="Efface la session locale et revient à la sélection du rôle"
+        label="Se déconnecter"
+        value="Compte Lugua"
+        onPress={actions.onSignOut}
+        accessibilityHint="Ouvre la confirmation de déconnexion"
         isLast
       />
     </ProfileSection>
