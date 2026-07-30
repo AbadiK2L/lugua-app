@@ -41,8 +41,12 @@ export function TeacherAppHeader() {
       return;
     }
 
+    if (id === "assignment") {
+      router.push("/teacher/assignment-builder");
+      return;
+    }
+
     const messages: Record<string, [string, string]> = {
-      assignment: ["Créer un devoir", "La création de devoirs sera disponible prochainement."],
       resource: ["Ajouter une ressource", "L’ajout de ressources sera disponible prochainement."],
     };
     const message = messages[id];

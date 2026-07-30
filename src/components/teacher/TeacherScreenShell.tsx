@@ -19,6 +19,8 @@ export function TeacherScreenShell({
     <SafeAreaView style={styles.safe} edges={hideBottomNavigation ? ["top", "bottom"] : ["top"]}>
       <ScrollView
         style={styles.scroll}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           styles.content,
           { paddingBottom: (hideBottomNavigation ? 0 : bottomAreaHeight) + 24 },

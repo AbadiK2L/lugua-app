@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { HOME_COLORS } from "@/src/components/home/homeColors";
+import { getSingleParam } from "@/src/components/teacher/assignments/assignmentUtils";
 import { TeacherClassAssignmentsSection } from "@/src/components/teacher/classes/TeacherClassAssignmentsSection";
 import { TeacherClassCoursesSection } from "@/src/components/teacher/classes/TeacherClassCoursesSection";
 import { TeacherClassFormModal } from "@/src/components/teacher/classes/TeacherClassFormModal";
@@ -10,6 +11,7 @@ import { TeacherClassMembersSection } from "@/src/components/teacher/classes/Tea
 import { TeacherClassSettingsSection } from "@/src/components/teacher/classes/TeacherClassSettingsSection";
 import { TeacherClassSummaryCard } from "@/src/components/teacher/classes/TeacherClassSummaryCard";
 import { TeacherScreenShell } from "@/src/components/teacher/TeacherScreenShell";
+import { useTeacherAssignments } from "@/src/contexts/TeacherAssignmentsContext";
 import { useTeacherClasses } from "@/src/contexts/TeacherClassesContext";
 import { useTeacherCourseDrafts } from "@/src/contexts/TeacherCourseDraftsContext";
 import type { CreateTeacherClassInput } from "@/src/types/teacher";
@@ -26,9 +28,13 @@ function getParam(value: string | string[] | undefined) {
 export default function TeacherClassDetailScreen() {
   const params = useLocalSearchParams<ClassDetailParams>();
   const classId = getParam(params.classId);
+  const { assignments } = useTeacherAssignments();
   const { getClassById, updateClass, archiveClass, restoreClass, deleteClass, addStudent, updateStudent, removeStudent, regenerateInviteCode, assignCourseDraft, unassignCourseDraft } = useTeacherClasses();
   const { drafts } = useTeacherCourseDrafts();
   const teacherClass = classId ? getClassById(classId) : undefined;
+  const classAssignments = assignments.filter(
+    (assignment) => assignment.classId === classId,
+  );
   const [editVisible, setEditVisible] = useState(false);
   const [notice, setNotice] = useState<string | undefined>();
 
@@ -139,7 +145,26 @@ export default function TeacherClassDetailScreen() {
         onGoToCourses={() => router.push({ pathname: "/teacher/courses", params: { mode: "my_courses" } })}
       />
       <TeacherClassAssignmentsSection
-        onCreate={() => Alert.alert("Créer un devoir", "La création de devoirs pour cette classe sera disponible prochainement.")}
+        assignments={classAssignments}
+        onCreate={() =>
+          router.push({
+            pathname: "/teacher/assignment-builder",
+            params: { classId: currentClass.id },
+          })
+        }
+        onOpen={(assignmentId) => {
+          const normalizedAssignmentId = getSingleParam(assignmentId);
+          if (!normalizedAssignmentId) {
+            setNotice(
+              "Devoir introuvable · Ce devoir n’est plus disponible dans cette session.",
+            );
+            return;
+          }
+          router.push({
+            pathname: "/teacher/assignment/[assignmentId]",
+            params: { assignmentId: normalizedAssignmentId },
+          });
+        }}
       />
       <TeacherClassSettingsSection
         teacherClass={currentClass}

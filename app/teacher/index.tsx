@@ -1,13 +1,15 @@
 import { router } from "expo-router";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { TeacherEmptyState } from "@/src/components/teacher/TeacherEmptyState";
 import { TeacherScreenShell } from "@/src/components/teacher/TeacherScreenShell";
+import { useTeacherAssignments } from "@/src/contexts/TeacherAssignmentsContext";
 import { useTeacherClasses } from "@/src/contexts/TeacherClassesContext";
 import { useTeacherCourseDrafts } from "@/src/contexts/TeacherCourseDraftsContext";
 
 export default function TeacherDashboardScreen() {
+  const { assignments } = useTeacherAssignments();
   const { classes } = useTeacherClasses();
   const { drafts } = useTeacherCourseDrafts();
   const activeClasses = classes.filter((teacherClass) => teacherClass.status === "active");
@@ -15,6 +17,9 @@ export default function TeacherDashboardScreen() {
     (total, teacherClass) => total + teacherClass.students.length,
     0,
   );
+  const publishedAssignmentCount = assignments.filter(
+    (assignment) => assignment.status === "published",
+  ).length;
 
   return (
     <TeacherScreenShell>
@@ -31,10 +36,13 @@ export default function TeacherDashboardScreen() {
         <View style={styles.overview}>
           <OverviewRow label="Classes actives" value={String(activeClasses.length)} />
           <OverviewRow label="Élèves" value={String(studentCount)} />
-          <OverviewRow label="Devoirs publiés" value="—" />
           <OverviewRow
             label="Brouillons de cours"
             value={drafts.length ? String(drafts.length) : "Aucun"}
+          />
+          <OverviewRow
+            label="Devoirs publiés"
+            value={String(publishedAssignmentCount)}
             isLast
           />
         </View>
@@ -53,9 +61,7 @@ export default function TeacherDashboardScreen() {
           />
           <QuickAction
             label="Créer un devoir"
-            onPress={() =>
-              Alert.alert("Créer un devoir", "La création de devoirs sera disponible prochainement.")
-            }
+            onPress={() => router.push("/teacher/assignment-builder")}
           />
         </View>
       </View>
