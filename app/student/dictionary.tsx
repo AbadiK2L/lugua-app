@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { router } from "expo-router";
 import {
   SectionList,
   StyleSheet,
@@ -101,7 +100,7 @@ export default function DictionaryScreen() {
   function renderHeader() {
     return (
       <View style={styles.header}>
-        <LuguaAppHeader onPressCurrentLesson={openNextLesson} />
+        <LuguaAppHeader />
         <View style={styles.intro}>
           <Text style={styles.title}>Dictionnaire</Text>
           <Text style={styles.subtitle}>
@@ -140,17 +139,6 @@ export default function DictionaryScreen() {
         </View>
       </View>
     );
-  }
-
-  function openNextLesson() {
-    const nextLesson = dictionaryEntries.find((entry) => entry.lessonAvailable);
-
-    if (nextLesson?.conceptId) {
-      router.push(`/lesson/${nextLesson.conceptId}`);
-      return;
-    }
-
-    router.push("/student/scenarios");
   }
 
   function renderEmpty() {

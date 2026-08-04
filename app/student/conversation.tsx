@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   Pressable,
@@ -21,7 +20,7 @@ import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { LuguaAppHeader } from "@/src/components/navigation/LuguaAppHeader";
 import { useBottomNavigationLayout } from "@/src/contexts/BottomNavigationLayoutContext";
 import { conversationVideos } from "@/src/data/conversation";
-import { dictionaryEntries, normalizeDictionaryText } from "@/src/data/dictionary";
+import { normalizeDictionaryText } from "@/src/data/dictionary";
 import type { ConversationVideoFilter } from "@/src/types/conversation";
 
 export default function ConversationScreen() {
@@ -53,17 +52,6 @@ export default function ConversationScreen() {
 
   const hasActiveControls = Boolean(search.trim()) || category !== "all";
 
-  function openFirstLesson() {
-    const nextLesson = dictionaryEntries.find((entry) => entry.lessonAvailable);
-
-    if (nextLesson?.conceptId) {
-      router.push(`/lesson/${nextLesson.conceptId}`);
-      return;
-    }
-
-    router.push("/student/scenarios");
-  }
-
   function resetFilters() {
     setSearch("");
     setCategory("all");
@@ -83,7 +71,7 @@ export default function ConversationScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.column}>
-          <LuguaAppHeader onPressCurrentLesson={openFirstLesson} />
+          <LuguaAppHeader />
 
           <View style={styles.intro}>
             <Text style={styles.title}>Conversation</Text>

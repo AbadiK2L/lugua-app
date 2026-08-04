@@ -303,7 +303,7 @@ export default function TeacherAssignmentDetailScreen() {
       ) : null}
 
       <TeacherAssignmentSubmissionsSection
-        studentCount={teacherClass?.students.length}
+        studentCount={teacherClass?.activeStudentCount}
       />
 
       <TeacherAssignmentSettingsSection

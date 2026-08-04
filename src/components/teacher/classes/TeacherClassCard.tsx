@@ -11,7 +11,7 @@ type TeacherClassCardProps = {
 export function TeacherClassCard({ teacherClass, onOpen }: TeacherClassCardProps) {
   const statusLabel = teacherClass.status === "active" ? "Active" : "Archivée";
   const codePreview = `${teacherClass.inviteCode.slice(0, 6)}••••`;
-  const accessibilityLabel = `${teacherClass.name}, ${statusLabel}, ${teacherClass.students.length} élève(s), ${teacherClass.assignedCourseDraftIds.length} cours attribué(s)`;
+  const accessibilityLabel = `${teacherClass.name}, ${statusLabel}, ${teacherClass.activeStudentCount} élève(s) actif(s), ${teacherClass.pendingInvitationCount} invitation(s), ${teacherClass.assignedCourseDraftIds.length} cours attribué(s)`;
 
   return (
     <View
@@ -32,13 +32,15 @@ export function TeacherClassCard({ teacherClass, onOpen }: TeacherClassCardProps
       </View>
 
       <Text style={styles.meta}>
-        {teacherClass.level ?? "Niveau non défini"} · {teacherClass.variety}
+        {teacherClass.level ?? "Niveau non défini"} · {teacherClass.variety} ·{" "}
+        {teacherClass.visibility === "public" ? "Publique" : "Privée"}
       </Text>
 
       <View style={styles.stats}>
-        <Stat label="Élèves" value={String(teacherClass.students.length)} />
+        <Stat label="Élèves actifs" value={String(teacherClass.activeStudentCount)} />
+        <Stat label="Invitations" value={String(teacherClass.pendingInvitationCount)} />
         <Stat label="Cours attribués" value={String(teacherClass.assignedCourseDraftIds.length)} />
-        <Stat label="Code démo" value={codePreview} />
+        <Stat label="Code" value={codePreview} />
       </View>
 
       <Pressable

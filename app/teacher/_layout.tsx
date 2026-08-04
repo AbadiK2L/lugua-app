@@ -75,6 +75,7 @@ export default function TeacherLayout() {
               <Tabs.Screen name="course-builder" options={{ href: null }} />
               <Tabs.Screen name="assignment-builder" options={{ href: null }} />
               <Tabs.Screen name="class/[classId]" options={{ href: null }} />
+              <Tabs.Screen name="notifications" options={{ href: null }} />
               <Tabs.Screen
                 name="assignment/[assignmentId]"
                 options={{ href: null }}

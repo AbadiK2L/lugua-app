@@ -16,13 +16,9 @@ import { ScenarioCategoryFilter } from "@/src/components/scenarios/ScenarioCateg
 import { ScenarioSearchBar } from "@/src/components/scenarios/ScenarioSearchBar";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { useBottomNavigationLayout } from "@/src/contexts/BottomNavigationLayoutContext";
-import { dictionaryEntries, normalizeDictionaryText } from "@/src/data/dictionary";
+import { normalizeDictionaryText } from "@/src/data/dictionary";
 import { scenarioCatalog } from "@/src/data/scenarioCatalog";
 import type { ScenarioCategory } from "@/src/types/scenarios";
-
-const firstAvailableLesson = dictionaryEntries.find(
-  (entry) => entry.lessonAvailable && entry.conceptId,
-);
 
 export default function ScenariosScreen() {
   const { bottomAreaHeight } = useBottomNavigationLayout();
@@ -45,15 +41,6 @@ export default function ScenariosScreen() {
       return matchesCategory && matchesSearch;
     });
   }, [category, search]);
-
-  function openFirstLesson() {
-    if (firstAvailableLesson?.conceptId) {
-      router.push(`/lesson/${firstAvailableLesson.conceptId}`);
-      return;
-    }
-
-    router.push("/student/scenarios");
-  }
 
   function openScenario(scenarioId: string) {
     const scenario = scenarioCatalog.find((item) => item.id === scenarioId);
@@ -85,7 +72,7 @@ export default function ScenariosScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.column}>
-          <LuguaAppHeader onPressCurrentLesson={openFirstLesson} />
+          <LuguaAppHeader />
 
           <View style={styles.intro}>
             <Text style={styles.title}>Scénarios</Text>

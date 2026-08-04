@@ -10,6 +10,7 @@ type TeacherClassSettingsSectionProps = {
   onArchive: () => void;
   onRestore: () => void;
   onDelete: () => void;
+  disabled?: boolean;
 };
 
 export function TeacherClassSettingsSection({
@@ -19,34 +20,39 @@ export function TeacherClassSettingsSection({
   onArchive,
   onRestore,
   onDelete,
+  disabled = false,
 }: TeacherClassSettingsSectionProps) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Paramètres</Text>
       <View style={styles.settingsCard}>
-        <SettingButton label="Modifier la classe" onPress={onEdit} />
-        <SettingButton label="Régénérer le code" onPress={onRegenerateCode} />
+        <SettingButton label="Modifier la classe" disabled={disabled} onPress={onEdit} />
+        <SettingButton label="Régénérer le code" disabled={disabled} onPress={onRegenerateCode} />
         <SettingButton
           label={teacherClass.status === "active" ? "Archiver la classe" : "Restaurer la classe"}
+          disabled={disabled}
           onPress={teacherClass.status === "active" ? onArchive : onRestore}
         />
-        <SettingButton label="Supprimer la classe" onPress={onDelete} destructive />
+        <SettingButton label="Supprimer la classe" disabled={disabled} onPress={onDelete} destructive />
       </View>
-
-      <Text style={styles.demoNote}>
-        Données locales · Les classes et élèves créés ici seront supprimés au redémarrage complet de l’application.
-      </Text>
     </View>
   );
 }
 
-function SettingButton({ label, onPress, destructive = false }: { label: string; onPress: () => void; destructive?: boolean }) {
+function SettingButton({ label, onPress, destructive = false, disabled = false }: { label: string; onPress: () => void; destructive?: boolean; disabled?: boolean }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.settingButton, destructive && styles.destructiveButton, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.settingButton,
+        destructive && styles.destructiveButton,
+        disabled && styles.disabled,
+        pressed && styles.pressed,
+      ]}
     >
       <Text style={[styles.settingText, destructive && styles.destructiveText]}>{label}</Text>
     </Pressable>
@@ -62,6 +68,6 @@ const styles = StyleSheet.create({
   destructiveButton: { backgroundColor: "rgba(142, 70, 84, 0.12)" },
   destructiveText: { color: "#ffb4c0" },
   heading: { gap: 4 },
-  demoNote: { color: HOME_COLORS.textMuted, fontSize: 12, fontWeight: "700", lineHeight: 18 },
+  disabled: { opacity: 0.48 },
   pressed: { backgroundColor: HOME_COLORS.surfaceRaised, opacity: 0.82 },
 });

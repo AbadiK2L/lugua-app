@@ -11,6 +11,7 @@ const TAB_BAR_CONTENT_HEIGHT = 68;
 
 type RoleTabBarProps = BottomTabBarProps & {
   hiddenRouteNames?: string[];
+  visibleRouteNames?: readonly string[];
   renderDock?: (routeName: string | undefined) => ReactNode;
 };
 
@@ -19,6 +20,7 @@ export function RoleTabBar({
   descriptors,
   navigation,
   hiddenRouteNames = [],
+  visibleRouteNames,
   renderDock,
 }: RoleTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -26,7 +28,11 @@ export function RoleTabBar({
   const currentRouteName = state.routes[state.index]?.name;
   const visibleRoutes = state.routes
     .map((route, index) => ({ route, index }))
-    .filter(({ route }) => !hiddenRouteNames.includes(route.name));
+    .filter(({ route }) =>
+      visibleRouteNames
+        ? visibleRouteNames.includes(route.name)
+        : !hiddenRouteNames.includes(route.name),
+    );
 
   return (
     <View

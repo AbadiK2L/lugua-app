@@ -1,68 +1,114 @@
-import { router } from "expo-router";
-import { Alert, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { router, type Href } from "expo-router";
+import type { ComponentProps } from "react";
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { LanguageSelector } from "@/src/components/home/LanguageSelector";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
+import { NotificationBellButton } from "@/src/components/navigation/NotificationBellButton";
+import { useAuthSession } from "@/src/contexts/AuthSessionContext";
 import { useLanguageSelection } from "@/src/contexts/LanguageSelectionContext";
 
-export type LuguaAppHeaderProps = {
-  onPressCurrentLesson: () => void;
-};
+type HeaderIconName = ComponentProps<typeof IconSymbol>["name"];
 
-export function LuguaAppHeader({ onPressCurrentLesson }: LuguaAppHeaderProps) {
+export function LuguaAppHeader() {
+  const { profile } = useAuthSession();
   const { selectedLanguage, setSelectedLanguage } = useLanguageSelection();
   const { width } = useWindowDimensions();
-  const showLabels = width >= 520;
+  const showLabels = width >= 620;
+  const inlineLanguage = width >= 620;
+  const displayName = profile?.displayName?.trim() || "Profil";
 
   return (
     <View style={styles.container}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Ouvrir le profil élève"
-        onPress={() => router.push("/student/profile")}
-        style={({ pressed }) => [styles.profileButton, pressed && styles.pressed]}
-      >
-        <IconSymbol name="person.fill" size={20} color={HOME_COLORS.accent} />
-        {showLabels ? <Text style={styles.profileLabel}>Profil</Text> : null}
-      </Pressable>
-
-      <LanguageSelector
-        value={selectedLanguage}
-        onChange={setSelectedLanguage}
-      />
-
-      <View style={styles.actions}>
+      <View style={styles.topRow}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Statistiques"
-          accessibilityHint="Affiche la disponibilité des statistiques"
-          onPress={() =>
-            Alert.alert("Statistiques", "Cette section sera disponible prochainement.")
-          }
-          style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
+          accessibilityLabel="Ouvrir mon profil"
+          onPress={() => router.push("/student/profile")}
+          style={({ pressed }) => [styles.profileButton, pressed && styles.pressed]}
         >
-          <IconSymbol name="chart.bar.fill" size={18} color={HOME_COLORS.accent} />
-          {showLabels ? <Text style={styles.actionLabel}>Statistiques</Text> : null}
+          <View style={styles.avatar}>
+            <IconSymbol name="person.fill" size={18} color={HOME_COLORS.accent} />
+          </View>
+          <View style={styles.profileCopy}>
+            <Text style={styles.profileName} numberOfLines={1}>
+              {displayName}
+            </Text>
+            {showLabels ? <Text style={styles.profileMeta}>Profil</Text> : null}
+          </View>
         </Pressable>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Ouvrir la prochaine leçon"
-          accessibilityHint="Ouvre la première leçon disponible"
-          onPress={onPressCurrentLesson}
-          style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
-        >
-          <IconSymbol name="book.fill" size={18} color={HOME_COLORS.textSecondary} />
-          {showLabels ? <Text style={styles.actionLabel}>Leçon</Text> : null}
-        </Pressable>
+        {inlineLanguage ? (
+          <LanguageSelector
+            value={selectedLanguage}
+            onChange={setSelectedLanguage}
+          />
+        ) : null}
+
+        <View style={styles.actions}>
+          <HeaderShortcut
+            href="/student/statistics"
+            icon="chart.bar.fill"
+            label="Statistiques"
+            accessibilityLabel="Ouvrir mes statistiques"
+            showLabel={showLabels}
+          />
+          <NotificationBellButton href="/student/notifications" showLabel={showLabels} />
+          <HeaderShortcut
+            href="/student/classes"
+            icon="graduationcap.fill"
+            label="Classes"
+            accessibilityLabel="Ouvrir mes classes"
+            showLabel={showLabels}
+          />
+        </View>
       </View>
+
+      {!inlineLanguage ? (
+        <View style={styles.languageRow}>
+          <LanguageSelector
+            value={selectedLanguage}
+            onChange={setSelectedLanguage}
+          />
+        </View>
+      ) : null}
     </View>
+  );
+}
+
+function HeaderShortcut({
+  href,
+  icon,
+  label,
+  accessibilityLabel,
+  showLabel,
+}: {
+  href: Href;
+  icon: HeaderIconName;
+  label: string;
+  accessibilityLabel: string;
+  showLabel: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      onPress={() => router.push(href)}
+      style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
+    >
+      <IconSymbol name={icon} size={18} color={HOME_COLORS.accent} />
+      {showLabel ? <Text style={styles.actionLabel}>{label}</Text> : null}
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    width: "100%",
+    gap: 8,
+  },
+  topRow: {
     width: "100%",
     minHeight: 52,
     flexDirection: "row",
@@ -70,22 +116,42 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   profileButton: {
-    minWidth: 44,
+    minWidth: 0,
     minHeight: 44,
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
+    gap: 8,
     borderWidth: 1,
     borderColor: HOME_COLORS.border,
     borderRadius: 12,
     backgroundColor: HOME_COLORS.surface,
     paddingHorizontal: 8,
   },
-  profileLabel: {
+  avatar: {
+    width: 28,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    backgroundColor: HOME_COLORS.accentSoft,
+  },
+  profileCopy: {
+    minWidth: 0,
+    flex: 1,
+  },
+  profileName: {
     color: HOME_COLORS.textPrimary,
     fontSize: 12,
+    fontWeight: "900",
+  },
+  profileMeta: {
+    color: HOME_COLORS.textMuted,
+    fontSize: 10,
     fontWeight: "800",
+  },
+  languageRow: {
+    alignSelf: "flex-start",
   },
   actions: {
     flexShrink: 0,
@@ -114,5 +180,6 @@ const styles = StyleSheet.create({
   pressed: {
     backgroundColor: HOME_COLORS.surfaceRaised,
     opacity: 0.82,
+    transform: [{ scale: 0.98 }],
   },
 });

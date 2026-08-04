@@ -13,6 +13,7 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { LanguageSelector } from "@/src/components/home/LanguageSelector";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
+import { NotificationBellButton } from "@/src/components/navigation/NotificationBellButton";
 import { useLanguageSelection } from "@/src/contexts/LanguageSelectionContext";
 
 const menuItems = [
@@ -81,20 +82,7 @@ export function TeacherAppHeader() {
           <IconSymbol name="plus.rectangle.fill" size={18} color={HOME_COLORS.accent} />
           {showLabels ? <Text style={styles.actionLabel}>Créer</Text> : null}
         </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Notifications"
-          onPress={() =>
-            Alert.alert(
-              "Notifications",
-              "Les alertes liées aux classes, élèves et devoirs seront disponibles prochainement.",
-            )
-          }
-          style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
-        >
-          <IconSymbol name="bell.fill" size={18} color={HOME_COLORS.accent} />
-          {showLabels ? <Text style={styles.actionLabel}>Alertes</Text> : null}
-        </Pressable>
+        <NotificationBellButton href="/teacher/notifications" showLabel={showLabels} />
       </View>
 
       <Modal

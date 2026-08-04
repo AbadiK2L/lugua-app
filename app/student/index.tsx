@@ -8,6 +8,7 @@ import { LearningHeroCard } from "@/src/components/home/LearningHeroCard";
 import { LearningOverviewCard } from "@/src/components/home/LearningOverviewCard";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { useBottomNavigationLayout } from "@/src/contexts/BottomNavigationLayoutContext";
+import { StudentClassesSection } from "@/src/components/student/StudentClassesSection";
 import { shikomoriQuestionsA1Path } from "@/src/data/curriculum";
 import { dictionaryEntries } from "@/src/data/dictionary";
 
@@ -51,7 +52,7 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.column}>
-            <LuguaAppHeader onPressCurrentLesson={openNextLesson} />
+            <LuguaAppHeader />
 
             <LearningHeroCard
               levelCode={level.title}
@@ -71,6 +72,8 @@ export default function Home() {
             <DictionaryAccessRow
               onPress={() => router.push("/student/dictionary")}
             />
+
+            <StudentClassesSection />
           </View>
         </ScrollView>
       </SafeAreaView>

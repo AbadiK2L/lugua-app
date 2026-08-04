@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { ReactNode } from "react";
 
@@ -9,9 +9,13 @@ import { useBottomNavigationLayout } from "@/src/contexts/BottomNavigationLayout
 export function TeacherScreenShell({
   children,
   hideBottomNavigation = false,
+  refreshing = false,
+  onRefresh,
 }: {
   children: ReactNode;
   hideBottomNavigation?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }) {
   const { bottomAreaHeight } = useBottomNavigationLayout();
 
@@ -21,6 +25,16 @@ export function TeacherScreenShell({
         style={styles.scroll}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={HOME_COLORS.accent}
+              colors={[HOME_COLORS.accent]}
+            />
+          ) : undefined
+        }
         contentContainerStyle={[
           styles.content,
           { paddingBottom: (hideBottomNavigation ? 0 : bottomAreaHeight) + 24 },

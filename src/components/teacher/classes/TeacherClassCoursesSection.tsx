@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Alert, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { HOME_COLORS } from "@/src/components/home/homeColors";
+import { TeacherAssignmentActionDialog } from "@/src/components/teacher/assignments/TeacherAssignmentActionDialog";
 import type { TeacherCourseDraft } from "@/src/types/teacher";
 
 type TeacherClassCoursesSectionProps = {
@@ -21,6 +22,7 @@ export function TeacherClassCoursesSection({
 }: TeacherClassCoursesSectionProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [notice, setNotice] = useState<string | undefined>();
+  const [pendingUnassign, setPendingUnassign] = useState<TeacherCourseDraft>();
   const assignedDrafts = assignedDraftIds
     .map((draftId) => drafts.find((draft) => draft.id === draftId))
     .filter((draft): draft is TeacherCourseDraft => Boolean(draft));
@@ -38,22 +40,14 @@ export function TeacherClassCoursesSection({
     setNotice("Cours attribué · Le brouillon est désormais lié à cette classe pendant la session.");
   }
 
-  function confirmUnassign(draftId: string, title: string) {
-    Alert.alert(
-      "Retirer ce cours de la classe ?",
-      `${title} restera disponible dans Mes cours.`,
-      [
-        { text: "Annuler", style: "cancel" },
-        {
-          text: "Retirer",
-          style: "destructive",
-          onPress: () => {
-            onUnassign(draftId);
-            setNotice("Attribution retirée · Le brouillon reste disponible dans Mes cours.");
-          },
-        },
-      ],
-    );
+  function confirmUnassign() {
+    if (!pendingUnassign) {
+      return;
+    }
+
+    onUnassign(pendingUnassign.id);
+    setNotice("Attribution retirée · Le brouillon reste disponible dans Mes cours.");
+    setPendingUnassign(undefined);
   }
 
   return (
@@ -84,7 +78,7 @@ export function TeacherClassCoursesSection({
             <AssignedDraftCard
               key={draft.id}
               draft={draft}
-              onRemove={() => confirmUnassign(draft.id, draft.title)}
+              onRemove={() => setPendingUnassign(draft)}
             />
           ))}
           {missingDraftIds.map((draftId) => (
@@ -146,6 +140,15 @@ export function TeacherClassCoursesSection({
           </View>
         </View>
       </Modal>
+      <TeacherAssignmentActionDialog
+        visible={Boolean(pendingUnassign)}
+        title="Retirer ce cours de la classe ?"
+        message={`${pendingUnassign?.title ?? "Ce brouillon"} restera disponible dans Mes cours.`}
+        confirmLabel="Retirer"
+        destructive
+        onCancel={() => setPendingUnassign(undefined)}
+        onConfirm={confirmUnassign}
+      />
     </View>
   );
 }

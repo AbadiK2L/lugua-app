@@ -12,6 +12,9 @@ export function TeacherClassSummaryCard({ teacherClass }: { teacherClass: Teache
         <View style={styles.copy}>
           <Text style={styles.eyebrow}>RÉSUMÉ DE LA CLASSE</Text>
           <Text style={styles.title}>{teacherClass.name}</Text>
+          <Text style={styles.visibilityBadge}>
+            {teacherClass.visibility === "public" ? "Classe publique" : "Classe privée"}
+          </Text>
         </View>
         <Text style={[styles.status, teacherClass.status === "archived" && styles.archivedStatus]}>
           {teacherClass.status === "active" ? "Active" : "Archivée"}
@@ -22,15 +25,20 @@ export function TeacherClassSummaryCard({ teacherClass }: { teacherClass: Teache
         <Detail label="Langue" value={teacherClass.language} />
         <Detail label="Variété" value={teacherClass.variety} />
         <Detail label="Niveau" value={teacherClass.level ?? "Non défini"} />
-        <Detail label="Élèves" value={String(teacherClass.students.length)} />
-        <Detail label="Cours attribués" value={String(teacherClass.assignedCourseDraftIds.length)} />
+        <Detail
+          label="Visibilité"
+          value={teacherClass.visibility === "public" ? "Publique" : "Privée"}
+        />
+        <Detail label="Élèves actifs" value={String(teacherClass.activeStudentCount)} />
+        <Detail label="Invitations" value={String(teacherClass.pendingInvitationCount)} />
+        <Detail label="Cours locaux" value={String(teacherClass.assignedCourseDraftIds.length)} />
         <Detail label="Créée le" value={createdDate} />
       </View>
       <View style={styles.inviteBlock}>
-        <Text style={styles.inviteLabel}>Code de démonstration</Text>
+        <Text style={styles.inviteLabel}>Code d’invitation</Text>
         <Text selectable style={styles.inviteCode}>{teacherClass.inviteCode}</Text>
         <Text style={styles.inviteNote}>
-          Ce code ne permet pas encore à un élève de rejoindre réellement la classe.
+          Il reste réservé à une future fonction de saisie de code. Les invitations par annuaire sont actives.
         </Text>
       </View>
     </View>
@@ -52,6 +60,7 @@ const styles = StyleSheet.create({
   copy: { flex: 1, gap: 5 },
   eyebrow: { color: HOME_COLORS.accent, fontSize: 11, fontWeight: "900", letterSpacing: 0.6 },
   title: { color: HOME_COLORS.textPrimary, fontSize: 22, fontWeight: "900" },
+  visibilityBadge: { alignSelf: "flex-start", overflow: "hidden", borderWidth: 1, borderColor: HOME_COLORS.accent, borderRadius: 8, backgroundColor: HOME_COLORS.accentSoft, color: HOME_COLORS.accent, fontSize: 11, fontWeight: "900", paddingHorizontal: 8, paddingVertical: 4 },
   status: { color: HOME_COLORS.accent, fontSize: 12, fontWeight: "900" },
   archivedStatus: { color: HOME_COLORS.textMuted },
   description: { color: HOME_COLORS.textSecondary, fontSize: 14, fontWeight: "600", lineHeight: 21 },

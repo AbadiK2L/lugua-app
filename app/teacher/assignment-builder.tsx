@@ -595,7 +595,7 @@ function ClassStep({
             <Pressable
               key={teacherClass.id}
               accessibilityRole="radio"
-              accessibilityLabel={`${teacherClass.name}, ${teacherClass.level ?? "niveau non défini"}, ${teacherClass.students.length} élèves`}
+              accessibilityLabel={`${teacherClass.name}, ${teacherClass.level ?? "niveau non défini"}, ${teacherClass.activeStudentCount} élèves actifs`}
               accessibilityState={{ selected }}
               onPress={() => onSelect(teacherClass.id)}
               style={({ pressed }) => [
@@ -611,8 +611,9 @@ function ClassStep({
                   {teacherClass.variety}
                 </Text>
                 <Text style={styles.selectionMeta}>
-                  {teacherClass.students.length} élève
-                  {teacherClass.students.length === 1 ? "" : "s"} ·{" "}
+                  {teacherClass.activeStudentCount} élève
+                  {teacherClass.activeStudentCount === 1 ? "" : "s"} actif
+                  {teacherClass.activeStudentCount === 1 ? "" : "s"} ·{" "}
                   {teacherClass.assignedCourseDraftIds.length} cours attribué
                   {teacherClass.assignedCourseDraftIds.length === 1 ? "" : "s"}
                 </Text>
@@ -920,8 +921,8 @@ function PreviewStep({
           value={formatDueDate(dueDate)}
         />
         <PreviewRow
-          label="Élèves dans la classe"
-          value={String(teacherClass.students.length)}
+          label="Élèves actifs"
+          value={String(teacherClass.activeStudentCount)}
         />
         <PreviewRow
           label="Statut prévu"

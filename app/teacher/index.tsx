@@ -14,7 +14,11 @@ export default function TeacherDashboardScreen() {
   const { drafts } = useTeacherCourseDrafts();
   const activeClasses = classes.filter((teacherClass) => teacherClass.status === "active");
   const studentCount = classes.reduce(
-    (total, teacherClass) => total + teacherClass.students.length,
+    (total, teacherClass) => total + teacherClass.activeStudentCount,
+    0,
+  );
+  const pendingInvitationCount = classes.reduce(
+    (total, teacherClass) => total + teacherClass.pendingInvitationCount,
     0,
   );
   const publishedAssignmentCount = assignments.filter(
@@ -35,13 +39,14 @@ export default function TeacherDashboardScreen() {
         <Text style={styles.sectionTitle}>Vue d’ensemble</Text>
         <View style={styles.overview}>
           <OverviewRow label="Classes actives" value={String(activeClasses.length)} />
-          <OverviewRow label="Élèves" value={String(studentCount)} />
+          <OverviewRow label="Élèves actifs" value={String(studentCount)} />
+          <OverviewRow label="Invitations en attente" value={String(pendingInvitationCount)} />
           <OverviewRow
-            label="Brouillons de cours"
+            label="Brouillons locaux"
             value={drafts.length ? String(drafts.length) : "Aucun"}
           />
           <OverviewRow
-            label="Devoirs publiés"
+            label="Devoirs publiés localement"
             value={String(publishedAssignmentCount)}
             isLast
           />

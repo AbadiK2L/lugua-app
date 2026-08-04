@@ -15,6 +15,7 @@ import { languageOptions } from "@/src/components/home/LanguageSelector";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import type {
   CreateTeacherClassInput,
+  ClassVisibility,
   TeacherClass,
 } from "@/src/types/teacher";
 
@@ -22,8 +23,10 @@ type TeacherClassFormModalProps = {
   visible: boolean;
   mode: "create" | "edit";
   initialClass?: TeacherClass;
+  submitting?: boolean;
+  errorMessage?: string | null;
   onClose: () => void;
-  onSubmit: (input: CreateTeacherClassInput) => void;
+  onSubmit: (input: CreateTeacherClassInput) => void | Promise<void>;
 };
 
 const levelOptions = ["A1", "A2", "B1", "B2", "Multi-niveaux", ""];
@@ -32,6 +35,8 @@ export function TeacherClassFormModal({
   visible,
   mode,
   initialClass,
+  submitting = false,
+  errorMessage,
   onClose,
   onSubmit,
 }: TeacherClassFormModalProps) {
@@ -39,6 +44,7 @@ export function TeacherClassFormModal({
   const [description, setDescription] = useState("");
   const [variety, setVariety] = useState<string>(languageOptions[0].detail);
   const [level, setLevel] = useState("");
+  const [visibility, setVisibility] = useState<ClassVisibility>("public");
   const [error, setError] = useState<string | undefined>();
 
   useEffect(() => {
@@ -50,21 +56,27 @@ export function TeacherClassFormModal({
     setDescription(initialClass?.description ?? "");
     setVariety(initialClass?.variety ?? languageOptions[0].detail);
     setLevel(initialClass?.level ?? "");
+    setVisibility(initialClass?.visibility ?? "public");
     setError(undefined);
   }, [initialClass, visible]);
 
   function submit() {
+    if (submitting) {
+      return;
+    }
+
     if (!name.trim()) {
       setError("Ajoute un nom à la classe.");
       return;
     }
 
-    onSubmit({
+    void onSubmit({
       name: name.trim(),
       description: description.trim(),
       language: languageOptions[0].label,
       variety,
       level: level || undefined,
+      visibility,
     });
   }
 
@@ -73,7 +85,7 @@ export function TeacherClassFormModal({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={submitting ? undefined : onClose}
       accessibilityViewIsModal
     >
       <KeyboardAvoidingView
@@ -83,6 +95,7 @@ export function TeacherClassFormModal({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Fermer le formulaire de classe"
+          disabled={submitting}
           onPress={onClose}
           style={StyleSheet.absoluteFillObject}
         />
@@ -95,8 +108,9 @@ export function TeacherClassFormModal({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Fermer"
+              disabled={submitting}
               onPress={onClose}
-              style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.closeButton, submitting && styles.disabled, pressed && styles.pressed]}
             >
               <Text style={styles.closeText}>×</Text>
             </Pressable>
@@ -135,12 +149,38 @@ export function TeacherClassFormModal({
               selected={level}
               onChange={setLevel}
             />
+            <View style={styles.field}>
+              <Text style={styles.label}>Visibilité de la classe</Text>
+              <VisibilityChoice
+                title="Publique"
+                description="Les élèves peuvent trouver cette classe et demander à la rejoindre."
+                selected={visibility === "public"}
+                onPress={() => setVisibility("public")}
+              />
+              <VisibilityChoice
+                title="Privée"
+                description="Seuls les élèves invités par le professeur peuvent la rejoindre."
+                selected={visibility === "private"}
+                onPress={() => setVisibility("private")}
+              />
+            </View>
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {error || errorMessage ? (
+              <Text accessibilityRole="alert" style={styles.errorText}>
+                {error ?? errorMessage}
+              </Text>
+            ) : null}
             <View style={styles.actions}>
-              <ActionButton label="Annuler" onPress={onClose} />
+              <ActionButton label="Annuler" disabled={submitting} onPress={onClose} />
               <ActionButton
-                label={mode === "create" ? "Créer la classe" : "Enregistrer"}
+                label={
+                  submitting
+                    ? "Enregistrement…"
+                    : mode === "create"
+                      ? "Créer la classe"
+                      : "Enregistrer"
+                }
+                disabled={submitting}
                 onPress={submit}
                 primary
               />
@@ -223,19 +263,59 @@ function ActionButton({
   label,
   onPress,
   primary = false,
+  disabled = false,
 }: {
   label: string;
   onPress: () => void;
   primary?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.actionButton, primary && styles.primaryButton, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.actionButton,
+        primary && styles.primaryButton,
+        disabled && styles.disabled,
+        pressed && styles.pressed,
+      ]}
     >
       <Text style={[styles.actionText, primary && styles.primaryActionText]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function VisibilityChoice({
+  title,
+  description,
+  selected,
+  onPress,
+}: {
+  title: string;
+  description: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityLabel={title}
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.visibilityChoice,
+        selected && styles.selectedChoice,
+        pressed && styles.pressed,
+      ]}
+    >
+      <Text style={[styles.choiceText, selected && styles.selectedChoiceText]}>
+        {title}
+      </Text>
+      <Text style={styles.visibilityDescription}>{description}</Text>
     </Pressable>
   );
 }
@@ -282,11 +362,14 @@ const styles = StyleSheet.create({
   selectedChoice: { borderColor: HOME_COLORS.accent, backgroundColor: HOME_COLORS.accentSoft },
   choiceText: { color: HOME_COLORS.textSecondary, fontSize: 12, fontWeight: "800" },
   selectedChoiceText: { color: HOME_COLORS.accent },
+  visibilityChoice: { minHeight: 70, gap: 4, justifyContent: "center", borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 10, backgroundColor: HOME_COLORS.surface, paddingHorizontal: 12, paddingVertical: 10 },
+  visibilityDescription: { color: HOME_COLORS.textSecondary, fontSize: 12, fontWeight: "600", lineHeight: 18 },
   errorText: { color: "#ffb4c0", fontSize: 13, fontWeight: "800", lineHeight: 19 },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "flex-end", paddingTop: 4 },
   actionButton: { minHeight: 46, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 10, backgroundColor: HOME_COLORS.surface, paddingHorizontal: 14 },
   primaryButton: { borderColor: HOME_COLORS.accent, backgroundColor: HOME_COLORS.accent },
   actionText: { color: HOME_COLORS.textPrimary, fontSize: 13, fontWeight: "900" },
   primaryActionText: { color: HOME_COLORS.ink },
+  disabled: { opacity: 0.48 },
   pressed: { opacity: 0.78 },
 });

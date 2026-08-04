@@ -10,9 +10,14 @@ import { useBottomNavigationLayout } from "@/src/contexts/BottomNavigationLayout
 type ProfileScreenShellProps = {
   children: ReactNode;
   fallbackHref: "/student" | "/teacher";
+  title?: string;
 };
 
-export function ProfileScreenShell({ children, fallbackHref }: ProfileScreenShellProps) {
+export function ProfileScreenShell({
+  children,
+  fallbackHref,
+  title = "Profil",
+}: ProfileScreenShellProps) {
   const { bottomAreaHeight } = useBottomNavigationLayout();
 
   function handleBack() {
@@ -49,7 +54,7 @@ export function ProfileScreenShell({ children, fallbackHref }: ProfileScreenShel
                 <IconSymbol name="chevron.left" size={20} color={HOME_COLORS.accent} />
                 <Text style={styles.backLabel}>Retour</Text>
               </Pressable>
-              <Text style={styles.topBarTitle}>Profil</Text>
+              <Text style={styles.topBarTitle}>{title}</Text>
               <View style={styles.topBarSide} />
             </View>
             {children}

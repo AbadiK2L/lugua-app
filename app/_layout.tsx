@@ -6,6 +6,7 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthSessionProvider } from "@/src/contexts/AuthSessionContext";
 import { LanguageSelectionProvider } from "@/src/contexts/LanguageSelectionContext";
+import { NotificationsProvider } from "@/src/contexts/NotificationsContext";
 
 export const unstable_settings = {
   anchor: "index",
@@ -14,9 +15,11 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
     <AuthSessionProvider>
-      <LanguageSelectionProvider>
-        <RootNavigation />
-      </LanguageSelectionProvider>
+      <NotificationsProvider>
+        <LanguageSelectionProvider>
+          <RootNavigation />
+        </LanguageSelectionProvider>
+      </NotificationsProvider>
     </AuthSessionProvider>
   );
 }

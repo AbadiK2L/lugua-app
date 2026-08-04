@@ -54,8 +54,9 @@ export function TeacherAssignmentSummaryCard({
         {teacherClass ? (
           <Text style={styles.secondaryText}>
             {teacherClass.level ?? "Niveau non défini"} ·{" "}
-            {teacherClass.variety} · {teacherClass.students.length} élève
-            {teacherClass.students.length === 1 ? "" : "s"}
+            {teacherClass.variety} · {teacherClass.activeStudentCount} élève
+            {teacherClass.activeStudentCount === 1 ? "" : "s"} actif
+            {teacherClass.activeStudentCount === 1 ? "" : "s"}
           </Text>
         ) : (
           <Text style={styles.secondaryText}>
