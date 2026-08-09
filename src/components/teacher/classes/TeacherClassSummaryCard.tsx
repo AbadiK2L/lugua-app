@@ -31,7 +31,7 @@ export function TeacherClassSummaryCard({ teacherClass }: { teacherClass: Teache
         />
         <Detail label="Élèves actifs" value={String(teacherClass.activeStudentCount)} />
         <Detail label="Invitations" value={String(teacherClass.pendingInvitationCount)} />
-        <Detail label="Cours locaux" value={String(teacherClass.assignedCourseDraftIds.length)} />
+        <Detail label="Cours attribués" value={String(teacherClass.assignedCourseDraftIds.length)} />
         <Detail label="Créée le" value={createdDate} />
       </View>
       <View style={styles.inviteBlock}>

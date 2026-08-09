@@ -1,6 +1,14 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import { languageOptions } from "@/src/components/home/LanguageSelector";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
@@ -14,7 +22,11 @@ import {
 import { TeacherScreenShell } from "@/src/components/teacher/TeacherScreenShell";
 import { useTeacherCourseDrafts } from "@/src/contexts/TeacherCourseDraftsContext";
 import type { CEFRLevel } from "@/src/types/learning";
-import type { TeacherCourseOrigin } from "@/src/types/teacher";
+import type {
+  CreateTeacherCourseDraftInput,
+  TeacherCourseDraft,
+  TeacherCourseOrigin,
+} from "@/src/types/teacher";
 
 type BuilderParams = {
   origin?: string | string[];
@@ -33,25 +45,127 @@ const levelOptions: (CEFRLevel | undefined)[] = ["A1", "A2", "B1", "B2", undefin
 
 export default function TeacherCourseBuilderScreen() {
   const params = useLocalSearchParams<BuilderParams>();
-  const { createDraft, updateDraft, getDraftById } = useTeacherCourseDrafts();
+  const { error, getDraftById, isLoading, refreshDrafts } =
+    useTeacherCourseDrafts();
   const draftId = getParam(params.draftId);
   const existingDraft = draftId ? getDraftById(draftId) : undefined;
+
+  if (draftId && !existingDraft && isLoading) {
+    return (
+      <TeacherScreenShell hideBottomNavigation>
+        <View style={styles.loadingState}>
+          <ActivityIndicator color={HOME_COLORS.accent} />
+          <Text style={styles.loadingText}>Chargement du cours…</Text>
+        </View>
+      </TeacherScreenShell>
+    );
+  }
+
+  if (draftId && !existingDraft && error) {
+    return (
+      <TeacherScreenShell hideBottomNavigation>
+        <BuilderUnavailableState
+          title="Cours indisponibles"
+          description={error}
+          actionLabel={isLoading ? "Chargement…" : "Réessayer"}
+          actionDisabled={isLoading}
+          onAction={() => {
+            void refreshDrafts();
+          }}
+        />
+      </TeacherScreenShell>
+    );
+  }
+
+  if (draftId && !existingDraft) {
+    return (
+      <TeacherScreenShell hideBottomNavigation>
+        <BuilderUnavailableState
+          title="Cours introuvable"
+          description="Ce cours n’existe plus ou n’est pas accessible avec ce compte."
+          actionLabel="Retour aux cours"
+          onAction={() => router.replace("/teacher/courses")}
+        />
+      </TeacherScreenShell>
+    );
+  }
+
   const requestedOrigin = getParam(params.origin);
+  const requestedChapterId = getParam(params.chapterId);
+  const preview = getParam(params.preview) === "1";
+
+  return (
+    <CourseBuilderForm
+      key={
+        draftId ??
+        `new-${requestedOrigin ?? "teacher_created"}-${requestedChapterId ?? "none"}`
+      }
+      draftId={draftId}
+      existingDraft={existingDraft}
+      requestedOrigin={requestedOrigin}
+      requestedChapterId={requestedChapterId}
+      preview={preview}
+    />
+  );
+}
+
+function BuilderUnavailableState({
+  title,
+  description,
+  actionLabel,
+  actionDisabled = false,
+  onAction,
+}: {
+  title: string;
+  description: string;
+  actionLabel: string;
+  actionDisabled?: boolean;
+  onAction: () => void;
+}) {
+  return (
+    <View style={styles.errorState}>
+      <Text style={styles.eyebrow}>CONSTRUCTEUR DE COURS</Text>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.subtitle}>{description}</Text>
+      <ActionButton
+        label={actionLabel}
+        disabled={actionDisabled}
+        onPress={onAction}
+        primary
+      />
+    </View>
+  );
+}
+
+function CourseBuilderForm({
+  draftId,
+  existingDraft,
+  requestedOrigin,
+  requestedChapterId,
+  preview,
+}: {
+  draftId?: string;
+  existingDraft?: TeacherCourseDraft;
+  requestedOrigin?: string;
+  requestedChapterId?: string;
+  preview: boolean;
+}) {
+  const { createDraft, updateDraft } = useTeacherCourseDrafts();
   const initialOrigin: TeacherCourseOrigin =
     existingDraft?.origin ??
     (requestedOrigin === "lugua_program" ? "lugua_program" : "teacher_created");
-  const requestedChapterId =
-    getParam(params.chapterId) ?? existingDraft?.sourceChapterId;
+  const initialChapterId =
+    requestedChapterId ?? existingDraft?.sourceChapterId;
   const invalidProgramChapter =
     initialOrigin === "lugua_program" &&
-    Boolean(requestedChapterId && requestedChapterId !== luguaProgramChapter.id);
+    Boolean(initialChapterId && initialChapterId !== luguaProgramChapter.id);
   const initialConceptIds =
     existingDraft?.selectedConceptIds ??
     (initialOrigin === "lugua_program"
       ? luguaProgramConcepts.map((concept) => concept.id)
       : []);
   const initialStep: BuilderStep = existingDraft
-    ? getParam(params.preview) === "1"
+    ? preview
       ? "preview"
       : "info"
     : "start";
@@ -75,15 +189,16 @@ export default function TeacherCourseBuilderScreen() {
   const [selectedConceptIds, setSelectedConceptIds] = useState<string[]>(initialConceptIds);
   const [error, setError] = useState<string | undefined>();
   const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   if (invalidProgramChapter) {
     return (
       <TeacherScreenShell hideBottomNavigation>
         <View style={styles.errorState}>
-          <Text style={styles.eyebrow}>CONSTRUCTEUR LOCAL</Text>
+          <Text style={styles.eyebrow}>CONSTRUCTEUR DE COURS</Text>
           <Text style={styles.title}>Chapitre indisponible</Text>
           <Text style={styles.subtitle}>
-            Ce chapitre du programme Lugua n’est pas disponible dans cette session.
+            Ce chapitre du programme Lugua n’est pas disponible.
           </Text>
           <ActionButton label="Retour aux cours" onPress={() => router.replace("/teacher/courses")} primary />
         </View>
@@ -93,8 +208,8 @@ export default function TeacherCourseBuilderScreen() {
 
   const isProgram = origin === "lugua_program";
   const isReadOnlyPreview = Boolean(
-    existingDraft &&
-      getParam(params.preview) === "1" &&
+      existingDraft &&
+      preview &&
       step === "preview" &&
       !isDirty,
   );
@@ -172,6 +287,10 @@ export default function TeacherCourseBuilderScreen() {
       setError("Ajoute un titre au cours.");
       return;
     }
+    if ([...title.trim()].length > 160) {
+      setError("Le titre doit contenir 160 caractères maximum.");
+      return;
+    }
 
     setError(undefined);
     setStep("content");
@@ -216,7 +335,7 @@ export default function TeacherCourseBuilderScreen() {
     );
   }
 
-  function buildDraftInput() {
+  function buildDraftInput(): CreateTeacherCourseDraftInput {
     return {
       origin,
       title: title.trim(),
@@ -230,10 +349,18 @@ export default function TeacherCourseBuilderScreen() {
     };
   }
 
-  function saveDraft() {
+  async function saveDraft() {
+    if (isSaving) {
+      return;
+    }
     if (!title.trim()) {
       setStep("info");
       setError("Ajoute un titre au cours.");
+      return;
+    }
+    if ([...title.trim()].length > 160) {
+      setStep("info");
+      setError("Le titre doit contenir 160 caractères maximum.");
       return;
     }
     if (isProgram && selectedConceptIds.length === 0) {
@@ -242,17 +369,28 @@ export default function TeacherCourseBuilderScreen() {
       return;
     }
 
-    const input = buildDraftInput();
-    if (draftId && existingDraft) {
-      updateDraft(draftId, input);
-    } else {
-      createDraft(input);
-    }
+    setIsSaving(true);
+    setError(undefined);
 
-    router.replace({
-      pathname: "/teacher/courses",
-      params: { mode: "my_courses", notice: "saved" },
-    });
+    try {
+      const input = buildDraftInput();
+      const result =
+        draftId && existingDraft
+          ? await updateDraft(draftId, input)
+          : await createDraft(input);
+
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+
+      router.replace({
+        pathname: "/teacher/courses",
+        params: { mode: "my_courses", notice: "saved" },
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -270,10 +408,10 @@ export default function TeacherCourseBuilderScreen() {
       </View>
 
       <View style={styles.intro}>
-        <Text style={styles.eyebrow}>CONSTRUCTEUR LOCAL</Text>
+        <Text style={styles.eyebrow}>CONSTRUCTEUR DE COURS</Text>
         <Text style={styles.title}>{step === "preview" ? "Aperçu du cours" : "Créer un cours"}</Text>
         <Text style={styles.subtitle}>
-          Prépare un brouillon local. Aucune publication, classe ou donnée distante n’est créée.
+          Prépare et enregistre ton cours. Il restera en brouillon tant que tu ne l’utilises pas dans une classe.
         </Text>
       </View>
 
@@ -329,8 +467,16 @@ export default function TeacherCourseBuilderScreen() {
           objectives={objectives}
           selectedConcepts={selectedConcepts}
           isReadOnly={isReadOnlyPreview}
+          isSaving={isSaving}
+          saveLabel={
+            existingDraft
+              ? "Enregistrer les modifications"
+              : "Enregistrer dans Mes cours"
+          }
           onEdit={() => setStep("info")}
-          onSave={saveDraft}
+          onSave={() => {
+            void saveDraft();
+          }}
         />
       ) : null}
 
@@ -460,7 +606,7 @@ function InfoStep({
           <Text style={styles.referenceText}>Le titre est proposé depuis le chapitre réel du curriculum.</Text>
         </View>
       ) : null}
-      <Field label="Titre" value={title} onChangeText={onTitleChange} placeholder="Titre du cours" />
+      <Field label="Titre" value={title} onChangeText={onTitleChange} placeholder="Titre du cours" maxLength={160} />
       <Field label="Description (facultatif)" value={description} onChangeText={onDescriptionChange} placeholder="Description du cours" multiline />
 
       <View style={styles.field}>
@@ -573,6 +719,8 @@ function PreviewStep({
   objectives,
   selectedConcepts,
   isReadOnly,
+  isSaving,
+  saveLabel,
   onEdit,
   onSave,
 }: {
@@ -584,13 +732,15 @@ function PreviewStep({
   objectives: string[];
   selectedConcepts: typeof luguaProgramConcepts;
   isReadOnly: boolean;
+  isSaving: boolean;
+  saveLabel: string;
   onEdit: () => void;
   onSave: () => void;
 }) {
   return (
     <View style={styles.section}>
       <View style={styles.previewCard}>
-        <Text style={styles.previewEyebrow}>APERÇU LOCAL</Text>
+        <Text style={styles.previewEyebrow}>APERÇU DU COURS</Text>
         <Text style={styles.previewTitle}>{title}</Text>
         <Text style={styles.previewOrigin}>
           {origin === "lugua_program" ? "Adapté du programme Lugua" : "Cours créé par le professeur"}
@@ -598,7 +748,7 @@ function PreviewStep({
         {description ? <Text style={styles.previewText}>{description}</Text> : null}
         <MetaRow label="Langue" value={`${luguaProgramLanguage.name} · ${variety}`} />
         <MetaRow label="Niveau" value={level ?? "Non défini"} />
-        <MetaRow label="Statut" value="Brouillon local" />
+        <MetaRow label="Statut" value="Brouillon" />
 
         <View style={styles.previewBlock}>
           <Text style={styles.previewBlockTitle}>Objectifs</Text>
@@ -613,11 +763,11 @@ function PreviewStep({
         ) : null}
 
         <Text style={styles.previewNote}>
-          Ce brouillon est conservé uniquement pendant cette session de démonstration.
+          Ce cours est enregistré dans Mes cours avec le statut brouillon.
         </Text>
       </View>
       <View style={styles.inlineActions}>
-        {isReadOnly ? <ActionButton label="Modifier" onPress={onEdit} primary /> : <ActionButton label="Ajouter à Mes cours" onPress={onSave} primary />}
+        {isReadOnly ? <ActionButton label="Modifier" onPress={onEdit} primary /> : <ActionButton label={isSaving ? "Enregistrement…" : saveLabel} onPress={onSave} disabled={isSaving} primary />}
         {isReadOnly ? null : <ActionButton label="Modifier" onPress={onEdit} />}
       </View>
     </View>
@@ -663,13 +813,15 @@ function ChoiceButton({ label, selected, onPress }: { label: string; selected: b
   );
 }
 
-function ActionButton({ label, onPress, primary = false }: { label: string; onPress: () => void; primary?: boolean }) {
+function ActionButton({ label, onPress, primary = false, disabled = false }: { label: string; onPress: () => void; primary?: boolean; disabled?: boolean }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.actionButton, primary && styles.primaryButton, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.actionButton, primary && styles.primaryButton, disabled && styles.disabled, pressed && styles.pressed]}
     >
       <Text style={[styles.actionButtonText, primary && styles.primaryButtonText]}>{label}</Text>
     </Pressable>
@@ -682,12 +834,14 @@ function Field({
   onChangeText,
   placeholder,
   multiline = false,
+  maxLength,
 }: {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
   placeholder: string;
   multiline?: boolean;
+  maxLength?: number;
 }) {
   return (
     <View style={styles.field}>
@@ -699,6 +853,7 @@ function Field({
         placeholder={placeholder}
         placeholderTextColor={HOME_COLORS.textMuted}
         multiline={multiline}
+        maxLength={maxLength}
         style={[styles.input, multiline && styles.multilineInput]}
       />
     </View>
@@ -757,6 +912,8 @@ const styles = StyleSheet.create({
   emptyContent: { gap: 6, borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 14, backgroundColor: HOME_COLORS.card, padding: 16 },
   emptyContentTitle: { color: HOME_COLORS.textPrimary, fontSize: 16, fontWeight: "900" },
   errorState: { gap: 10, borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 14, backgroundColor: HOME_COLORS.card, padding: 18 },
+  loadingState: { minHeight: 120, alignItems: "center", justifyContent: "center", gap: 10, borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 14, backgroundColor: HOME_COLORS.card, padding: 18 },
+  loadingText: { color: HOME_COLORS.textSecondary, fontSize: 13, fontWeight: "800" },
   errorText: { color: "#ffb4c0", fontSize: 13, fontWeight: "800", lineHeight: 19 },
   previewCard: { gap: 10, borderWidth: 1, borderColor: HOME_COLORS.accent, borderRadius: 16, backgroundColor: HOME_COLORS.card, padding: 18 },
   previewEyebrow: { color: HOME_COLORS.accent, fontSize: 11, fontWeight: "900", letterSpacing: 0.7 },
@@ -777,5 +934,6 @@ const styles = StyleSheet.create({
   primaryButtonText: { color: HOME_COLORS.ink },
   secondaryButton: { minHeight: 46, alignItems: "center", justifyContent: "center", alignSelf: "flex-start", borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 10, backgroundColor: HOME_COLORS.surface, paddingHorizontal: 14 },
   secondaryButtonText: { color: HOME_COLORS.textPrimary, fontSize: 13, fontWeight: "900" },
+  disabled: { opacity: 0.48 },
   pressed: { opacity: 0.78 },
 });

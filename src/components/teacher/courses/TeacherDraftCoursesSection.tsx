@@ -9,6 +9,7 @@ type DraftFilter = "all" | TeacherCourseOrigin;
 
 type TeacherDraftCoursesSectionProps = {
   drafts: TeacherCourseDraft[];
+  disabled?: boolean;
   onCreateFromZero: () => void;
   onUseProgram: () => void;
   onOpen: (draft: TeacherCourseDraft) => void;
@@ -19,6 +20,7 @@ type TeacherDraftCoursesSectionProps = {
 
 export function TeacherDraftCoursesSection({
   drafts,
+  disabled = false,
   onCreateFromZero,
   onUseProgram,
   onOpen,
@@ -88,6 +90,7 @@ export function TeacherDraftCoursesSection({
             <TeacherCourseDraftCard
               key={draft.id}
               draft={draft}
+              disabled={disabled}
               onOpen={() => onOpen(draft)}
               onEdit={() => onEdit(draft)}
               onDuplicate={() => onDuplicate(draft)}

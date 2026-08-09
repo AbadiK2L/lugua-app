@@ -21,6 +21,13 @@ import {
   restoreTeacherClass as restoreTeacherClassService,
   updateTeacherClass as updateTeacherClassService,
 } from "@/src/services/classesService";
+import {
+  assignTeacherCourseToClass,
+  CoursesServiceError,
+  getCoursesServiceErrorMessage,
+  listTeacherClassCourseAssignments,
+  unassignTeacherCourseFromClass,
+} from "@/src/services/coursesService";
 import type {
   ActionResult,
   ClassRosterMember,
@@ -28,8 +35,7 @@ import type {
   TeacherClass,
   UpdateTeacherClassInput,
 } from "@/src/types/classes";
-
-type CourseDraftAssignments = Record<string, string[]>;
+import type { TeacherClassCourseAssignment } from "@/src/types/courses";
 
 type MutationResult<T> =
   | { ok: true; data: T }
@@ -55,8 +61,14 @@ type TeacherClassesContextValue = {
     classId: string,
   ) => Promise<ActionResult<TeacherClass>>;
   getClassById: (classId: string) => TeacherClass | undefined;
-  assignCourseDraft: (classId: string, draftId: string) => void;
-  unassignCourseDraft: (classId: string, draftId: string) => void;
+  assignCourseDraft: (
+    classId: string,
+    draftId: string,
+  ) => Promise<ActionResult>;
+  unassignCourseDraft: (
+    classId: string,
+    draftId: string,
+  ) => Promise<ActionResult>;
 };
 
 const TeacherClassesContext = createContext<
@@ -75,7 +87,7 @@ function getRosterCounts(roster: ClassRosterMember[]) {
 
 function enrichClass(
   teacherClass: TeacherClass,
-  localAssignments: CourseDraftAssignments,
+  assignedCourseDraftIds: string[],
   roster?: ClassRosterMember[],
 ) {
   const counts = roster ? getRosterCounts(roster) : teacherClass;
@@ -84,43 +96,53 @@ function enrichClass(
     ...teacherClass,
     activeStudentCount: counts.activeStudentCount,
     pendingInvitationCount: counts.pendingInvitationCount,
-    assignedCourseDraftIds: localAssignments[teacherClass.id] ?? [],
+    assignedCourseDraftIds,
   };
 }
 
 function replaceClass(
   classes: TeacherClass[],
   nextClass: TeacherClass,
-  localAssignments: CourseDraftAssignments,
 ) {
   return classes.map((teacherClass) =>
     teacherClass.id === nextClass.id
-      ? enrichClass(
-          nextClass,
-          localAssignments,
-          undefined,
-        )
+      ? nextClass
       : teacherClass,
   );
+}
+
+function buildCourseAssignments(
+  assignments: TeacherClassCourseAssignment[],
+) {
+  return assignments.reduce<Record<string, string[]>>(
+    (assignmentsByClass, assignment) => {
+      const courseIds = assignmentsByClass[assignment.classId] ?? [];
+      assignmentsByClass[assignment.classId] = [
+        ...courseIds,
+        assignment.courseId,
+      ];
+      return assignmentsByClass;
+    },
+    {},
+  );
+}
+
+function getContextErrorMessage(error: unknown) {
+  return error instanceof CoursesServiceError
+    ? getCoursesServiceErrorMessage(error)
+    : getClassesServiceErrorMessage(error);
 }
 
 export function TeacherClassesProvider({ children }: PropsWithChildren) {
   const { profile, user } = useAuthSession();
   const [classes, setClasses] = useState<TeacherClass[]>([]);
-  const [courseDraftAssignments, setCourseDraftAssignments] =
-    useState<CourseDraftAssignments>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
   const mutatingRef = useRef(false);
-  const courseDraftAssignmentsRef = useRef<CourseDraftAssignments>({});
   const teacherId = profile?.role === "teacher" ? profile.id : undefined;
   const sessionUserId = user?.id;
-
-  useEffect(() => {
-    courseDraftAssignmentsRef.current = courseDraftAssignments;
-  }, [courseDraftAssignments]);
 
   const refreshClasses = useCallback(async () => {
     if (!teacherId || !sessionUserId || teacherId !== sessionUserId) {
@@ -138,18 +160,24 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
 
     try {
       const loadedClasses = await listTeacherClasses(teacherId);
-      const rosters = await Promise.all(
-        loadedClasses.map((teacherClass) => getClassRoster(teacherClass.id)),
-      );
+      const [rosters, assignments] = await Promise.all([
+        Promise.all(
+          loadedClasses.map((teacherClass) =>
+            getClassRoster(teacherClass.id),
+          ),
+        ),
+        listTeacherClassCourseAssignments(),
+      ]);
 
       if (requestIdRef.current !== requestId) {
         return;
       }
 
+      const assignmentsByClass = buildCourseAssignments(assignments);
       const nextClasses = loadedClasses.map((teacherClass, index) =>
         enrichClass(
           teacherClass,
-          courseDraftAssignmentsRef.current,
+          assignmentsByClass[teacherClass.id] ?? [],
           rosters[index],
         ),
       );
@@ -160,7 +188,7 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
         return;
       }
 
-      const message = getClassesServiceErrorMessage(caughtError);
+      const message = getContextErrorMessage(caughtError);
       setClasses([]);
       setError(message);
     } finally {
@@ -175,7 +203,11 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
   }, [refreshClasses]);
 
   const runMutation = useCallback(
-    async <T,>(operation: () => Promise<T>): Promise<MutationResult<T>> => {
+    async <T,>(
+      operation: () => Promise<T>,
+      getErrorMessage: (error: unknown) => string =
+        getClassesServiceErrorMessage,
+    ): Promise<MutationResult<T>> => {
       if (mutatingRef.current) {
         return {
           ok: false,
@@ -191,7 +223,7 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
         const data = await operation();
         return { ok: true, data };
       } catch (caughtError) {
-        const message = getClassesServiceErrorMessage(caughtError);
+        const message = getErrorMessage(caughtError);
         setError(message);
         return { ok: false, message };
       } finally {
@@ -218,7 +250,7 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
           ...input,
           teacherId,
         });
-        return enrichClass(createdClass, courseDraftAssignmentsRef.current);
+        return enrichClass(createdClass, []);
       });
 
       if (result.ok && result.data) {
@@ -242,19 +274,17 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
         );
 
         return {
-          ...enrichClass(updatedClass, courseDraftAssignmentsRef.current),
+          ...updatedClass,
           activeStudentCount: currentClass?.activeStudentCount ?? 0,
           pendingInvitationCount: currentClass?.pendingInvitationCount ?? 0,
+          assignedCourseDraftIds:
+            currentClass?.assignedCourseDraftIds ?? [],
         };
       });
 
       if (result.ok && result.data) {
         setClasses((currentClasses) =>
-          replaceClass(
-            currentClasses,
-            result.data,
-            courseDraftAssignmentsRef.current,
-          ),
+          replaceClass(currentClasses, result.data),
         );
       }
 
@@ -271,11 +301,18 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
 
       if (result.ok && result.data) {
         setClasses((currentClasses) =>
-          replaceClass(
-            currentClasses,
-            result.data,
-            courseDraftAssignmentsRef.current,
-          ),
+          replaceClass(currentClasses, {
+            ...result.data,
+            activeStudentCount:
+              currentClasses.find(({ id }) => id === classId)
+                ?.activeStudentCount ?? 0,
+            pendingInvitationCount:
+              currentClasses.find(({ id }) => id === classId)
+                ?.pendingInvitationCount ?? 0,
+            assignedCourseDraftIds:
+              currentClasses.find(({ id }) => id === classId)
+                ?.assignedCourseDraftIds ?? [],
+          }),
         );
       }
 
@@ -292,11 +329,18 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
 
       if (result.ok && result.data) {
         setClasses((currentClasses) =>
-          replaceClass(
-            currentClasses,
-            result.data,
-            courseDraftAssignmentsRef.current,
-          ),
+          replaceClass(currentClasses, {
+            ...result.data,
+            activeStudentCount:
+              currentClasses.find(({ id }) => id === classId)
+                ?.activeStudentCount ?? 0,
+            pendingInvitationCount:
+              currentClasses.find(({ id }) => id === classId)
+                ?.pendingInvitationCount ?? 0,
+            assignedCourseDraftIds:
+              currentClasses.find(({ id }) => id === classId)
+                ?.assignedCourseDraftIds ?? [],
+          }),
         );
       }
 
@@ -313,11 +357,6 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
         setClasses((currentClasses) =>
           currentClasses.filter((teacherClass) => teacherClass.id !== classId),
         );
-        setCourseDraftAssignments((currentAssignments) => {
-          const { [classId]: _removedClass, ...remainingAssignments } =
-            currentAssignments;
-          return remainingAssignments;
-        });
       }
 
       return result.ok ? { ok: true } : result;
@@ -336,19 +375,17 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
         );
 
         return {
-          ...enrichClass(updatedClass, courseDraftAssignmentsRef.current),
+          ...updatedClass,
           activeStudentCount: currentClass?.activeStudentCount ?? 0,
           pendingInvitationCount: currentClass?.pendingInvitationCount ?? 0,
+          assignedCourseDraftIds:
+            currentClass?.assignedCourseDraftIds ?? [],
         };
       });
 
       if (result.ok && result.data) {
         setClasses((currentClasses) =>
-          replaceClass(
-            currentClasses,
-            result.data,
-            courseDraftAssignmentsRef.current,
-          ),
+          replaceClass(currentClasses, result.data),
         );
       }
 
@@ -363,57 +400,81 @@ export function TeacherClassesProvider({ children }: PropsWithChildren) {
     [classes],
   );
 
-  const assignCourseDraft = useCallback((classId: string, draftId: string) => {
-    setCourseDraftAssignments((currentAssignments) => {
-      const currentDraftIds = currentAssignments[classId] ?? [];
+  const assignCourseDraft = useCallback(
+    async (classId: string, draftId: string): Promise<ActionResult> => {
+      const teacherClass = classes.find(({ id }) => id === classId);
 
-      if (currentDraftIds.includes(draftId)) {
-        return currentAssignments;
+      if (!teacherClass) {
+        return { ok: false, message: "Classe introuvable." };
+      }
+      if (teacherClass.assignedCourseDraftIds.includes(draftId)) {
+        return { ok: true };
       }
 
-      return {
-        ...currentAssignments,
-        [classId]: [...currentDraftIds, draftId],
-      };
-    });
-    setClasses((currentClasses) =>
-      currentClasses.map((teacherClass) =>
-        teacherClass.id === classId
-          ? {
-              ...teacherClass,
-              assignedCourseDraftIds: [
-                ...teacherClass.assignedCourseDraftIds,
-                draftId,
-              ],
-            }
-          : teacherClass,
-      ),
-    );
-  }, []);
+      const result = await runMutation(
+        () => assignTeacherCourseToClass(classId, draftId),
+        getCoursesServiceErrorMessage,
+      );
+
+      if (result.ok) {
+        setClasses((currentClasses) =>
+          currentClasses.map((currentClass) =>
+            currentClass.id === classId &&
+            !currentClass.assignedCourseDraftIds.includes(draftId)
+              ? {
+                  ...currentClass,
+                  assignedCourseDraftIds: [
+                    ...currentClass.assignedCourseDraftIds,
+                    draftId,
+                  ],
+                }
+              : currentClass,
+          ),
+        );
+        return { ok: true };
+      }
+
+      return result;
+    },
+    [classes, runMutation],
+  );
 
   const unassignCourseDraft = useCallback(
-    (classId: string, draftId: string) => {
-      setCourseDraftAssignments((currentAssignments) => ({
-        ...currentAssignments,
-        [classId]: (currentAssignments[classId] ?? []).filter(
-          (assignedDraftId) => assignedDraftId !== draftId,
-        ),
-      }));
-      setClasses((currentClasses) =>
-        currentClasses.map((teacherClass) =>
-          teacherClass.id === classId
-            ? {
-                ...teacherClass,
-                assignedCourseDraftIds:
-                  teacherClass.assignedCourseDraftIds.filter(
-                    (assignedDraftId) => assignedDraftId !== draftId,
-                  ),
-              }
-            : teacherClass,
-        ),
+    async (classId: string, draftId: string): Promise<ActionResult> => {
+      const teacherClass = classes.find(({ id }) => id === classId);
+
+      if (!teacherClass) {
+        return { ok: false, message: "Classe introuvable." };
+      }
+      if (!teacherClass.assignedCourseDraftIds.includes(draftId)) {
+        return { ok: true };
+      }
+
+      const result = await runMutation(
+        () => unassignTeacherCourseFromClass(classId, draftId),
+        getCoursesServiceErrorMessage,
       );
+
+      if (result.ok) {
+        setClasses((currentClasses) =>
+          currentClasses.map((currentClass) =>
+            currentClass.id === classId
+              ? {
+                  ...currentClass,
+                  assignedCourseDraftIds:
+                    currentClass.assignedCourseDraftIds.filter(
+                      (assignedDraftId) => assignedDraftId !== draftId,
+                    ),
+                }
+              : currentClass,
+          ),
+        );
+        return { ok: true };
+      }
+
+      return result;
     },
-    [],
+    [classes, runMutation],
   );
 
   const value = useMemo(

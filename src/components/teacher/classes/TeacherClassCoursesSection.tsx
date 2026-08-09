@@ -1,52 +1,116 @@
 import { useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { TeacherAssignmentActionDialog } from "@/src/components/teacher/assignments/TeacherAssignmentActionDialog";
+import type { ActionResult } from "@/src/types/classes";
 import type { TeacherCourseDraft } from "@/src/types/teacher";
 
 type TeacherClassCoursesSectionProps = {
   assignedDraftIds: string[];
   drafts: TeacherCourseDraft[];
-  onAssign: (draftId: string) => void;
-  onUnassign: (draftId: string) => void;
+  isCoursesLoading: boolean;
+  coursesError: string | null;
+  onRefreshCourses: () => Promise<void>;
+  onAssign: (draftId: string) => Promise<ActionResult>;
+  onUnassign: (draftId: string) => Promise<ActionResult>;
   onGoToCourses: () => void;
 };
 
 export function TeacherClassCoursesSection({
   assignedDraftIds,
   drafts,
+  isCoursesLoading,
+  coursesError,
+  onRefreshCourses,
   onAssign,
   onUnassign,
   onGoToCourses,
 }: TeacherClassCoursesSectionProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [notice, setNotice] = useState<string | undefined>();
+  const [actionError, setActionError] = useState<string | undefined>();
+  const [isMutating, setIsMutating] = useState(false);
   const [pendingUnassign, setPendingUnassign] = useState<TeacherCourseDraft>();
   const assignedDrafts = assignedDraftIds
     .map((draftId) => drafts.find((draft) => draft.id === draftId))
     .filter((draft): draft is TeacherCourseDraft => Boolean(draft));
-  const missingDraftIds = assignedDraftIds.filter(
-    (draftId) => !drafts.some((draft) => draft.id === draftId),
-  );
+  const missingDraftIds = isCoursesLoading || coursesError
+    ? []
+    : assignedDraftIds.filter(
+        (draftId) => !drafts.some((draft) => draft.id === draftId),
+      );
   const availableDrafts = useMemo(
     () => drafts.filter((draft) => !assignedDraftIds.includes(draft.id)),
     [assignedDraftIds, drafts],
   );
 
-  function assign(draftId: string) {
-    onAssign(draftId);
-    setModalVisible(false);
-    setNotice("Cours attribué · Le brouillon est désormais lié à cette classe pendant la session.");
+  async function assign(draftId: string) {
+    if (isMutating) {
+      return;
+    }
+
+    setIsMutating(true);
+    setActionError(undefined);
+    setNotice(undefined);
+
+    try {
+      const result = await onAssign(draftId);
+
+      if (!result.ok) {
+        setActionError(result.message);
+        return;
+      }
+
+      setModalVisible(false);
+      setNotice("Cours attribué · Le cours est désormais lié à cette classe.");
+    } finally {
+      setIsMutating(false);
+    }
   }
 
-  function confirmUnassign() {
+  async function unassign(draftId: string) {
+    if (isMutating) {
+      return false;
+    }
+
+    setIsMutating(true);
+    setActionError(undefined);
+    setNotice(undefined);
+
+    try {
+      const result = await onUnassign(draftId);
+
+      if (!result.ok) {
+        setActionError(result.message);
+        return false;
+      }
+
+      setNotice("Attribution retirée · Le cours reste disponible dans Mes cours.");
+      return true;
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
+  async function confirmUnassign() {
     if (!pendingUnassign) {
       return;
     }
 
-    onUnassign(pendingUnassign.id);
-    setNotice("Attribution retirée · Le brouillon reste disponible dans Mes cours.");
+    const removed = await unassign(pendingUnassign.id);
+    if (removed) {
+      setPendingUnassign(undefined);
+      return;
+    }
+
     setPendingUnassign(undefined);
   }
 
@@ -57,7 +121,7 @@ export function TeacherClassCoursesSection({
           <Text style={styles.sectionTitle}>Cours attribués</Text>
           <Text style={styles.sectionMeta}>{assignedDraftIds.length} attribution{assignedDraftIds.length === 1 ? "" : "s"}</Text>
         </View>
-        <ActionButton label="Attribuer un cours" onPress={() => setModalVisible(true)} primary />
+        <ActionButton label="Attribuer un cours" disabled={isCoursesLoading || isMutating} onPress={() => { setActionError(undefined); setModalVisible(true); }} primary />
       </View>
 
       {notice ? (
@@ -66,7 +130,45 @@ export function TeacherClassCoursesSection({
         </Pressable>
       ) : null}
 
-      {assignedDrafts.length === 0 && missingDraftIds.length === 0 ? (
+      {actionError && !modalVisible && !pendingUnassign ? (
+        <View accessibilityRole="alert" style={styles.errorNotice}>
+          <Text style={styles.errorNoticeTitle}>Action impossible</Text>
+          <Text style={styles.errorNoticeText}>{actionError}</Text>
+        </View>
+      ) : null}
+
+      {coursesError && drafts.length > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Réessayer le chargement des cours"
+          disabled={isCoursesLoading}
+          onPress={() => {
+            void onRefreshCourses();
+          }}
+          style={[styles.notice, isCoursesLoading && styles.disabled]}
+        >
+          <Text style={styles.noticeText}>{coursesError}</Text>
+        </Pressable>
+      ) : null}
+
+      {isCoursesLoading && drafts.length === 0 ? (
+        <View style={styles.loadingState}>
+          <ActivityIndicator color={HOME_COLORS.accent} />
+          <Text style={styles.mutedText}>Chargement des cours…</Text>
+        </View>
+      ) : coursesError && drafts.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>Cours indisponibles</Text>
+          <Text style={styles.emptyText}>{coursesError}</Text>
+          <ActionButton
+            label={isCoursesLoading ? "Chargement…" : "Réessayer"}
+            disabled={isCoursesLoading}
+            onPress={() => {
+              void onRefreshCourses();
+            }}
+          />
+        </View>
+      ) : assignedDrafts.length === 0 && missingDraftIds.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyTitle}>Aucun cours attribué</Text>
           <Text style={styles.emptyText}>Attribue un brouillon créé dans l’espace Cours.</Text>
@@ -78,6 +180,7 @@ export function TeacherClassCoursesSection({
             <AssignedDraftCard
               key={draft.id}
               draft={draft}
+              disabled={isMutating}
               onRemove={() => setPendingUnassign(draft)}
             />
           ))}
@@ -85,9 +188,9 @@ export function TeacherClassCoursesSection({
             <View key={draftId} style={styles.missingCard}>
               <View style={styles.heading}>
                 <Text style={styles.missingTitle}>Cours indisponible</Text>
-                <Text style={styles.missingText}>Ce brouillon a été supprimé de la session.</Text>
+                <Text style={styles.missingText}>Ce cours n’est plus disponible.</Text>
               </View>
-              <SmallButton label="Retirer la référence" onPress={() => onUnassign(draftId)} destructive />
+              <SmallButton label="Retirer la référence" disabled={isMutating} onPress={() => { void unassign(draftId); }} destructive />
             </View>
           ))}
         </View>
@@ -103,13 +206,19 @@ export function TeacherClassCoursesSection({
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
               <View style={styles.heading}>
-                <Text style={styles.eyebrow}>ATTRIBUTION LOCALE</Text>
+                <Text style={styles.eyebrow}>ATTRIBUTION DE COURS</Text>
                 <Text style={styles.modalTitle}>Attribuer un cours</Text>
               </View>
               <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={() => setModalVisible(false)} style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}>
                 <Text style={styles.closeText}>×</Text>
               </Pressable>
             </View>
+            {actionError ? (
+              <View accessibilityRole="alert" style={styles.errorNotice}>
+                <Text style={styles.errorNoticeTitle}>Attribution impossible</Text>
+                <Text style={styles.errorNoticeText}>{actionError}</Text>
+              </View>
+            ) : null}
             {availableDrafts.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyTitle}>Aucun brouillon disponible</Text>
@@ -126,11 +235,11 @@ export function TeacherClassCoursesSection({
             ) : (
               <View style={styles.modalList}>
                 {availableDrafts.map((draft) => (
-                  <Pressable key={draft.id} accessibilityRole="button" accessibilityLabel={`Attribuer ${draft.title}`} accessibilityHint="Lie ce brouillon à la classe" onPress={() => assign(draft.id)} style={({ pressed }) => [styles.option, pressed && styles.pressed]}>
+                  <Pressable key={draft.id} accessibilityRole="button" accessibilityLabel={`Attribuer ${draft.title}`} accessibilityHint="Lie ce cours à la classe" accessibilityState={{ disabled: isMutating }} disabled={isMutating} onPress={() => { void assign(draft.id); }} style={({ pressed }) => [styles.option, isMutating && styles.disabled, pressed && styles.pressed]}>
                     <View style={styles.heading}>
                       <Text style={styles.optionTitle}>{draft.title}</Text>
                       <Text style={styles.optionMeta}>{draft.origin === "lugua_program" ? "Adapté du programme Lugua" : "Créé par le professeur"}</Text>
-                      <Text style={styles.optionMeta}>{draft.level ?? "Niveau non défini"} · {draft.variety} · Brouillon local</Text>
+                      <Text style={styles.optionMeta}>{draft.level ?? "Niveau non défini"} · {draft.variety} · Brouillon</Text>
                     </View>
                     <Text style={styles.optionAction}>Attribuer</Text>
                   </Pressable>
@@ -147,36 +256,39 @@ export function TeacherClassCoursesSection({
         confirmLabel="Retirer"
         destructive
         onCancel={() => setPendingUnassign(undefined)}
-        onConfirm={confirmUnassign}
+        submitting={isMutating}
+        onConfirm={() => {
+          void confirmUnassign();
+        }}
       />
     </View>
   );
 }
 
-function AssignedDraftCard({ draft, onRemove }: { draft: TeacherCourseDraft; onRemove: () => void }) {
+function AssignedDraftCard({ draft, onRemove, disabled }: { draft: TeacherCourseDraft; onRemove: () => void; disabled: boolean }) {
   return (
     <View style={styles.assignedCard}>
       <View style={styles.heading}>
         <Text style={styles.optionTitle}>{draft.title}</Text>
         <Text style={styles.optionMeta}>{draft.origin === "lugua_program" ? "Adapté du programme Lugua" : "Créé par le professeur"}</Text>
-        <Text style={styles.optionMeta}>{draft.level ?? "Niveau non défini"} · {draft.variety} · Brouillon local</Text>
+        <Text style={styles.optionMeta}>{draft.level ?? "Niveau non défini"} · {draft.variety} · Brouillon</Text>
       </View>
-      <SmallButton label="Retirer" onPress={onRemove} destructive />
+      <SmallButton label="Retirer" disabled={disabled} onPress={onRemove} destructive />
     </View>
   );
 }
 
-function ActionButton({ label, onPress, primary = false }: { label: string; onPress: () => void; primary?: boolean }) {
+function ActionButton({ label, onPress, primary = false, disabled = false }: { label: string; onPress: () => void; primary?: boolean; disabled?: boolean }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.actionButton, primary && styles.primaryButton, pressed && styles.pressed]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.actionButton, primary && styles.primaryButton, disabled && styles.disabled, pressed && styles.pressed]}>
       <Text style={[styles.actionText, primary && styles.primaryActionText]}>{label}</Text>
     </Pressable>
   );
 }
 
-function SmallButton({ label, onPress, destructive = false }: { label: string; onPress: () => void; destructive?: boolean }) {
+function SmallButton({ label, onPress, destructive = false, disabled = false }: { label: string; onPress: () => void; destructive?: boolean; disabled?: boolean }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.smallButton, destructive && styles.destructiveButton, pressed && styles.pressed]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.smallButton, destructive && styles.destructiveButton, disabled && styles.disabled, pressed && styles.pressed]}>
       <Text style={[styles.smallButtonText, destructive && styles.destructiveText]}>{label}</Text>
     </Pressable>
   );
@@ -195,6 +307,10 @@ const styles = StyleSheet.create({
   mutedText: { color: HOME_COLORS.textMuted, fontSize: 12, fontWeight: "700", lineHeight: 18 },
   notice: { borderWidth: 1, borderColor: HOME_COLORS.accent, borderRadius: 10, backgroundColor: HOME_COLORS.accentSoft, padding: 12 },
   noticeText: { color: HOME_COLORS.textPrimary, fontSize: 12, fontWeight: "800", lineHeight: 18 },
+  errorNotice: { gap: 3, borderWidth: 1, borderColor: "#8e4654", borderRadius: 10, backgroundColor: HOME_COLORS.surface, padding: 12 },
+  errorNoticeTitle: { color: "#ffb4c0", fontSize: 13, fontWeight: "900" },
+  errorNoticeText: { color: HOME_COLORS.textSecondary, fontSize: 12, fontWeight: "700", lineHeight: 18 },
+  loadingState: { minHeight: 90, alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 14, backgroundColor: HOME_COLORS.card, padding: 16 },
   list: { gap: 8 },
   assignedCard: { minHeight: 72, flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 12, backgroundColor: HOME_COLORS.surface, padding: 12 },
   missingCard: { minHeight: 72, flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderColor: "#8e4654", borderRadius: 12, backgroundColor: HOME_COLORS.surface, padding: 12 },
@@ -221,5 +337,6 @@ const styles = StyleSheet.create({
   destructiveButton: { borderColor: "#8e4654" },
   smallButtonText: { color: HOME_COLORS.textPrimary, fontSize: 11, fontWeight: "800" },
   destructiveText: { color: "#ffb4c0" },
+  disabled: { opacity: 0.48 },
   pressed: { opacity: 0.78 },
 });

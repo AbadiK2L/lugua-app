@@ -88,7 +88,12 @@ export default function TeacherClassDetailScreen() {
     isMutating: isClassMutating,
     error: classesError,
   } = useTeacherClasses();
-  const { drafts } = useTeacherCourseDrafts();
+  const {
+    drafts,
+    error: coursesError,
+    isLoading: isCoursesLoading,
+    refreshDrafts,
+  } = useTeacherCourseDrafts();
   const teacherClass = classId ? getClassById(classId) : undefined;
   const classAssignments = assignments.filter(
     (assignment) => assignment.classId === classId,
@@ -584,6 +589,9 @@ export default function TeacherClassDetailScreen() {
       <TeacherClassCoursesSection
         assignedDraftIds={currentClass.assignedCourseDraftIds}
         drafts={drafts}
+        isCoursesLoading={isCoursesLoading}
+        coursesError={coursesError}
+        onRefreshCourses={refreshDrafts}
         onAssign={(draftId) => assignCourseDraft(currentClass.id, draftId)}
         onUnassign={(draftId) => unassignCourseDraft(currentClass.id, draftId)}
         onGoToCourses={() => router.push({ pathname: "/teacher/courses", params: { mode: "my_courses" } })}

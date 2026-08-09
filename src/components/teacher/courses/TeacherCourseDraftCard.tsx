@@ -5,6 +5,7 @@ import type { TeacherCourseDraft } from "@/src/types/teacher";
 
 type TeacherCourseDraftCardProps = {
   draft: TeacherCourseDraft;
+  disabled?: boolean;
   onOpen: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
@@ -13,6 +14,7 @@ type TeacherCourseDraftCardProps = {
 
 export function TeacherCourseDraftCard({
   draft,
+  disabled = false,
   onOpen,
   onEdit,
   onDuplicate,
@@ -24,7 +26,7 @@ export function TeacherCourseDraftCard({
       : "Cours créé par le professeur";
   const levelLabel = draft.level ?? "Niveau non défini";
   const modifiedDate = new Date(draft.updatedAt).toLocaleDateString("fr-FR");
-  const accessibilityLabel = `${draft.title}, ${originLabel}, ${levelLabel}, brouillon local`;
+  const accessibilityLabel = `${draft.title}, ${originLabel}, ${levelLabel}, brouillon`;
 
   return (
     <View accessible accessibilityLabel={accessibilityLabel} style={styles.card}>
@@ -33,7 +35,7 @@ export function TeacherCourseDraftCard({
           <Text style={styles.title} numberOfLines={2}>{draft.title}</Text>
           <Text style={styles.origin}>{originLabel}</Text>
         </View>
-        <Text style={styles.status}>Brouillon local</Text>
+        <Text style={styles.status}>Brouillon</Text>
       </View>
 
       {draft.description ? (
@@ -51,10 +53,10 @@ export function TeacherCourseDraftCard({
       <Text style={styles.date}>Modifié le {modifiedDate}</Text>
 
       <View style={styles.actions}>
-        <DraftAction label="Ouvrir" onPress={onOpen} primary />
-        <DraftAction label="Modifier" onPress={onEdit} />
-        <DraftAction label="Dupliquer" onPress={onDuplicate} />
-        <DraftAction label="Supprimer" onPress={onDelete} destructive />
+        <DraftAction label="Ouvrir" onPress={onOpen} disabled={disabled} primary />
+        <DraftAction label="Modifier" onPress={onEdit} disabled={disabled} />
+        <DraftAction label="Dupliquer" onPress={onDuplicate} disabled={disabled} />
+        <DraftAction label="Supprimer" onPress={onDelete} disabled={disabled} destructive />
       </View>
     </View>
   );
@@ -65,21 +67,26 @@ function DraftAction({
   onPress,
   primary = false,
   destructive = false,
+  disabled = false,
 }: {
   label: string;
   onPress: () => void;
   primary?: boolean;
   destructive?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.action,
         primary && styles.primaryAction,
         destructive && styles.destructiveAction,
+        disabled && styles.disabled,
         pressed && styles.pressed,
       ]}
     >
@@ -110,5 +117,6 @@ const styles = StyleSheet.create({
   actionText: { color: HOME_COLORS.textPrimary, fontSize: 12, fontWeight: "800" },
   primaryActionText: { color: HOME_COLORS.ink },
   destructiveActionText: { color: "#ffb4c0" },
+  disabled: { opacity: 0.48 },
   pressed: { opacity: 0.78 },
 });

@@ -16,6 +16,13 @@ import type {
   StudentClassMembershipRow,
   StudentDirectoryEntryRow,
 } from "@/src/types/classes";
+import type {
+  ClassCourseAssignmentInsertRow,
+  ClassCourseAssignmentRow,
+  TeacherCourseInsertRow,
+  TeacherCourseRow,
+  TeacherCourseUpdateRow,
+} from "@/src/types/courses";
 import type { LuguaNotificationRow } from "@/src/types/notifications";
 import type { ProfileRow } from "@/src/types/profile";
 
@@ -41,6 +48,18 @@ type Database = {
       class_members: {
         Row: ClassMemberRow;
         Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      teacher_courses: {
+        Row: TeacherCourseRow;
+        Insert: TeacherCourseInsertRow;
+        Update: TeacherCourseUpdateRow;
+        Relationships: [];
+      };
+      class_course_assignments: {
+        Row: ClassCourseAssignmentRow;
+        Insert: ClassCourseAssignmentInsertRow;
         Update: never;
         Relationships: [];
       };
