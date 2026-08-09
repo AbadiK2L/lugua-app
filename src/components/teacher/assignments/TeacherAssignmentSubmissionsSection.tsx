@@ -13,8 +13,8 @@ export function TeacherAssignmentSubmissionsSection({
       <View style={styles.card}>
         <Text style={styles.title}>Aucun rendu disponible</Text>
         <Text style={styles.text}>
-          La remise et la correction des travaux seront ajoutées avec les
-          comptes élèves et la base de données.
+          Aucun rendu réel n’est encore enregistré. La remise et la correction
+          des travaux seront ajoutées dans une prochaine étape.
         </Text>
         <Text style={styles.context}>
           {studentCount === undefined

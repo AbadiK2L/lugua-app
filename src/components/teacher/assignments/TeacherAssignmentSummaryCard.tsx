@@ -60,7 +60,7 @@ export function TeacherAssignmentSummaryCard({
           </Text>
         ) : (
           <Text style={styles.secondaryText}>
-            Cette classe a été supprimée de la session.
+            Cette classe a été supprimée.
           </Text>
         )}
       </View>
@@ -74,7 +74,7 @@ export function TeacherAssignmentSummaryCard({
           ]}
         >
           {assignment.courseDraftId
-            ? courseDraft?.title ?? "Cours indisponible"
+            ? courseDraft?.title ?? "Cours source supprimé"
             : "Devoir libre"}
         </Text>
         {courseDraft ? (
@@ -87,7 +87,7 @@ export function TeacherAssignmentSummaryCard({
           </Text>
         ) : courseUnavailable ? (
           <Text style={styles.secondaryText}>
-            Le brouillon de cours lié a été supprimé de la session.
+            Le cours source a été supprimé. Le devoir reste disponible.
           </Text>
         ) : (
           <Text style={styles.secondaryText}>Aucun cours associé</Text>

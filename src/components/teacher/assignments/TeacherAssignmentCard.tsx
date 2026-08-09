@@ -23,6 +23,7 @@ type TeacherAssignmentCardProps = {
   onClose: () => void;
   onReopen: () => void;
   onDelete: () => void;
+  disabled?: boolean;
 };
 
 export function TeacherAssignmentCard({
@@ -36,6 +37,7 @@ export function TeacherAssignmentCard({
   onClose,
   onReopen,
   onDelete,
+  disabled = false,
 }: TeacherAssignmentCardProps) {
   return (
     <View style={styles.card}>
@@ -58,25 +60,27 @@ export function TeacherAssignmentCard({
       </View>
 
       <View style={styles.actions}>
-        <CardAction label="Ouvrir" onPress={onOpen} primary />
-        {assignment.status === "draft" ? <CardAction label="Modifier" onPress={onEdit} /> : null}
-        <CardAction label="Dupliquer" onPress={onDuplicate} />
-        {assignment.status === "draft" ? <CardAction label="Publier" onPress={onPublish} /> : null}
-        {assignment.status === "published" ? <CardAction label="Clôturer" onPress={onClose} /> : null}
-        {assignment.status === "closed" ? <CardAction label="Rouvrir" onPress={onReopen} /> : null}
-        <CardAction label="Supprimer" onPress={onDelete} destructive />
+        <CardAction label="Ouvrir" onPress={onOpen} primary disabled={disabled} />
+        {assignment.status === "draft" ? <CardAction label="Modifier" onPress={onEdit} disabled={disabled} /> : null}
+        <CardAction label="Dupliquer" onPress={onDuplicate} disabled={disabled} />
+        {assignment.status === "draft" ? <CardAction label="Publier" onPress={onPublish} disabled={disabled} /> : null}
+        {assignment.status === "published" ? <CardAction label="Clôturer" onPress={onClose} disabled={disabled} /> : null}
+        {assignment.status === "closed" ? <CardAction label="Rouvrir" onPress={onReopen} disabled={disabled} /> : null}
+        <CardAction label="Supprimer" onPress={onDelete} destructive disabled={disabled} />
       </View>
     </View>
   );
 }
 
-function CardAction({ label, onPress, primary = false, destructive = false }: { label: string; onPress: () => void; primary?: boolean; destructive?: boolean }) {
+function CardAction({ label, onPress, primary = false, destructive = false, disabled = false }: { label: string; onPress: () => void; primary?: boolean; destructive?: boolean; disabled?: boolean }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.action, primary && styles.primaryAction, destructive && styles.destructiveAction, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.action, primary && styles.primaryAction, destructive && styles.destructiveAction, disabled && styles.disabled, pressed && styles.pressed]}
     >
       <Text style={[styles.actionText, primary && styles.primaryActionText, destructive && styles.destructiveActionText]}>{label}</Text>
     </Pressable>
@@ -100,5 +104,6 @@ const styles = StyleSheet.create({
   actionText: { color: HOME_COLORS.textPrimary, fontSize: 11, fontWeight: "800" },
   primaryActionText: { color: HOME_COLORS.ink },
   destructiveActionText: { color: "#ffb4c0" },
+  disabled: { opacity: 0.48 },
   pressed: { opacity: 0.78, transform: [{ scale: 0.98 }] },
 });

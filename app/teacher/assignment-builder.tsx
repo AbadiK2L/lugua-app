@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams, type Href } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Pressable,
   StyleSheet,
   Text,
@@ -70,20 +71,140 @@ function getSafeReturnTo(value: string | string[] | undefined) {
 
 export default function TeacherAssignmentBuilderScreen() {
   const params = useLocalSearchParams<AssignmentBuilderParams>();
+  const assignmentId = getSingleParam(params.assignmentId);
+  const {
+    getAssignmentById,
+    isLoading: assignmentsIsLoading,
+    error: assignmentsError,
+    refreshAssignments,
+  } = useTeacherAssignments();
+  const {
+    classes,
+    isLoading: classesIsLoading,
+    error: classesError,
+    refreshClasses,
+  } = useTeacherClasses();
+  const {
+    drafts,
+    isLoading: coursesIsLoading,
+    error: coursesError,
+    refreshDrafts,
+  } = useTeacherCourseDrafts();
+  const existingAssignment = assignmentId
+    ? getAssignmentById(assignmentId)
+    : undefined;
+  const initializationKey = assignmentId
+    ? `edit:${assignmentId}`
+    : `new:${getSingleParam(params.classId) ?? ""}:${getSingleParam(params.courseDraftId) ?? ""}`;
+  const routeKeyRef = useRef(initializationKey);
+  const initializedRef = useRef(false);
+  const initialAssignmentRef = useRef<TeacherAssignment | undefined>(undefined);
+
+  if (routeKeyRef.current !== initializationKey) {
+    routeKeyRef.current = initializationKey;
+    initializedRef.current = false;
+    initialAssignmentRef.current = undefined;
+  }
+
+  const isLoading =
+    assignmentsIsLoading || classesIsLoading || coursesIsLoading;
+  const loadingError = assignmentsError ?? classesError ?? coursesError;
+
+  if (!initializedRef.current && isLoading) {
+    return (
+      <TeacherScreenShell hideBottomNavigation>
+        <View style={styles.emptyCard}>
+          <ActivityIndicator color={HOME_COLORS.accent} />
+          <Text style={styles.sectionTitle}>Chargement du devoir…</Text>
+          <Text style={styles.bodyText}>
+            Les classes, les cours et le devoir sont en cours de chargement.
+          </Text>
+        </View>
+      </TeacherScreenShell>
+    );
+  }
+
+  if (!initializedRef.current && loadingError) {
+    return (
+      <TeacherScreenShell hideBottomNavigation>
+        <NotFoundState
+          title="Chargement impossible"
+          description={loadingError}
+          actionLabel="Réessayer"
+          onAction={() => {
+            void Promise.all([
+              refreshAssignments(),
+              refreshClasses(),
+              refreshDrafts(),
+            ]);
+          }}
+        />
+      </TeacherScreenShell>
+    );
+  }
+
+  if (!initializedRef.current && assignmentId && !existingAssignment) {
+    return (
+      <TeacherScreenShell hideBottomNavigation>
+        <NotFoundState
+          title="Devoir introuvable"
+          description="Ce devoir n’existe pas ou n’est plus disponible."
+        />
+      </TeacherScreenShell>
+    );
+  }
+
+  if (
+    !initializedRef.current &&
+    existingAssignment &&
+    existingAssignment.status !== "draft"
+  ) {
+    return (
+      <TeacherScreenShell hideBottomNavigation>
+        <NotFoundState
+          title="Modification indisponible"
+          description="Seuls les brouillons peuvent être modifiés librement."
+          assignment={existingAssignment}
+        />
+      </TeacherScreenShell>
+    );
+  }
+
+  if (!initializedRef.current) {
+    initialAssignmentRef.current = existingAssignment;
+    initializedRef.current = true;
+  }
+
+  return (
+    <AssignmentBuilderForm
+      key={initializationKey}
+      params={params}
+      existingAssignment={initialAssignmentRef.current}
+      classes={classes}
+      drafts={drafts}
+    />
+  );
+}
+
+function AssignmentBuilderForm({
+  params,
+  existingAssignment,
+  classes,
+  drafts,
+}: {
+  params: AssignmentBuilderParams;
+  existingAssignment?: TeacherAssignment;
+  classes: TeacherClass[];
+  drafts: TeacherCourseDraft[];
+}) {
   const {
     createAssignment,
     updateAssignment,
     publishAssignment,
-    getAssignmentById,
+    refreshAssignments,
   } = useTeacherAssignments();
-  const { classes } = useTeacherClasses();
-  const { drafts } = useTeacherCourseDrafts();
-  const assignmentId = getSingleParam(params.assignmentId);
   const returnTo = getSafeReturnTo(params.returnTo);
   const isEditMode = getSingleParam(params.mode) === "edit";
-  const existingAssignment = assignmentId
-    ? getAssignmentById(assignmentId)
-    : undefined;
   const activeClasses = useMemo(
     () => classes.filter((teacherClass) => teacherClass.status === "active"),
     [classes],
@@ -103,11 +224,9 @@ export default function TeacherAssignmentBuilderScreen() {
   const [step, setStep] = useState<BuilderStep>("class");
   const [selectedClassId, setSelectedClassId] = useState(initialClassId);
   const [contentMode, setContentMode] = useState<"free" | "course">(
-    requestedCourseDraftId ? "course" : "free",
+    initialCourseDraft ? "course" : "free",
   );
-  const [courseDraftId, setCourseDraftId] = useState(
-    initialCourseDraft?.id ?? requestedCourseDraftId ?? "",
-  );
+  const [courseDraftId, setCourseDraftId] = useState(initialCourseDraft?.id ?? "");
   const [selectedConceptIds, setSelectedConceptIds] = useState(
     existingAssignment?.selectedConceptIds ??
       initialCourseDraft?.selectedConceptIds ??
@@ -126,6 +245,8 @@ export default function TeacherAssignmentBuilderScreen() {
   const [error, setError] = useState<string | undefined>();
   const [dateWarning, setDateWarning] = useState<string | undefined>();
   const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [createdAssignmentId, setCreatedAssignmentId] = useState<string>();
   const [exitDialogVisible, setExitDialogVisible] = useState(false);
 
   const selectedClass = activeClasses.find(
@@ -157,29 +278,6 @@ export default function TeacherAssignmentBuilderScreen() {
       : [];
   const parsedDate = parseDueDate(dueDateInput);
   const currentStepIndex = steps.findIndex((candidate) => candidate.id === step);
-
-  if (assignmentId && !existingAssignment) {
-    return (
-      <TeacherScreenShell hideBottomNavigation>
-        <NotFoundState
-          title="Devoir introuvable"
-          description="Ce devoir n’existe pas ou n’est plus disponible dans cette session."
-        />
-      </TeacherScreenShell>
-    );
-  }
-
-  if (existingAssignment && existingAssignment.status !== "draft") {
-    return (
-      <TeacherScreenShell hideBottomNavigation>
-        <NotFoundState
-          title="Modification indisponible"
-          description="Seuls les brouillons peuvent être modifiés librement dans cette maquette."
-          assignment={existingAssignment}
-        />
-      </TeacherScreenShell>
-    );
-  }
 
   function markDirty() {
     setIsDirty(true);
@@ -277,6 +375,10 @@ export default function TeacherAssignmentBuilderScreen() {
   }
 
   function handleRequestExit() {
+    if (isSaving) {
+      return;
+    }
+
     if (currentStepIndex > 0) {
       setError(undefined);
       setStep(steps[currentStepIndex - 1].id);
@@ -291,7 +393,11 @@ export default function TeacherAssignmentBuilderScreen() {
     navigateBack();
   }
 
-  function saveAssignment() {
+  async function saveAssignment() {
+    if (isSaving) {
+      return;
+    }
+
     if (!selectedClass) {
       setStep("class");
       setError("Choisis une classe.");
@@ -329,45 +435,70 @@ export default function TeacherAssignmentBuilderScreen() {
       dueDate: parsedDate.isoDate,
     };
 
-    if (existingAssignment) {
-      updateAssignment(existingAssignment.id, input);
+    setIsSaving(true);
+    setError(undefined);
+
+    try {
+      let savedAssignmentId = existingAssignment?.id ?? createdAssignmentId;
+
+      if (savedAssignmentId) {
+        const updateResult = await updateAssignment(savedAssignmentId, input);
+
+        if (!updateResult.ok) {
+          setError(updateResult.message);
+          return;
+        }
+
+        savedAssignmentId = updateResult.data.id;
+      } else {
+        const createResult = await createAssignment(input);
+
+        if (!createResult.ok) {
+          setError(createResult.message);
+          return;
+        }
+
+        savedAssignmentId = createResult.data.id;
+        setCreatedAssignmentId(savedAssignmentId);
+      }
+
       if (initialStatus === "published") {
-        const publishResult = publishAssignment(existingAssignment.id);
+        const publishResult = await publishAssignment(savedAssignmentId);
+
         if (!publishResult.ok) {
+          await refreshAssignments();
           setError(
-            publishResult.reason === "class_archived"
-              ? "La classe liée est archivée. Restaure-la ou choisis une autre classe."
-              : publishResult.reason === "class_not_found"
-                ? "La classe liée n’est plus disponible."
-                : publishResult.reason === "missing_title"
-                  ? "Ajoute un titre au devoir."
-                  : "Ce devoir n’est plus disponible dans cette session.",
+            `Le brouillon est enregistré, mais la publication n’a pas abouti. ${publishResult.message}`,
           );
           setStep(
             publishResult.reason === "missing_title"
               ? "information"
-              : "class",
+              : publishResult.reason === "class_archived" ||
+                  publishResult.reason === "class_not_found"
+                ? "class"
+                : "preview",
           );
           return;
         }
       }
-    } else {
-      createAssignment({ ...input, status: initialStatus });
-    }
 
-    router.replace({
-      pathname: "/teacher/assignments",
-      params: {
-        status: initialStatus,
-        notice: existingAssignment
-          ? initialStatus === "published"
-            ? "published_created"
-            : "draft_updated"
-          : initialStatus === "published"
-            ? "published_created"
-            : "draft_created",
-      },
-    });
+      setIsDirty(false);
+      router.replace({
+        pathname: "/teacher/assignments",
+        params: {
+          status: initialStatus,
+          notice: existingAssignment
+            ? initialStatus === "published"
+              ? "published_created"
+              : "draft_updated"
+            : initialStatus === "published"
+              ? "published_created"
+              : "draft_created",
+        },
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -376,6 +507,8 @@ export default function TeacherAssignmentBuilderScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
+          accessibilityState={{ disabled: isSaving }}
+          disabled={isSaving}
           onPress={handleRequestExit}
           style={({ pressed }) => [
             styles.backButton,
@@ -417,12 +550,12 @@ export default function TeacherAssignmentBuilderScreen() {
       </View>
 
       <View style={styles.intro}>
-        <Text style={styles.eyebrow}>CONSTRUCTEUR LOCAL</Text>
+        <Text style={styles.eyebrow}>CONSTRUCTEUR DE DEVOIR</Text>
         <Text style={styles.title}>
           {existingAssignment ? "Modifier le devoir" : "Créer un devoir"}
         </Text>
         <Text style={styles.subtitle}>
-          Les données restent uniquement dans cette session de démonstration.
+          Crée et enregistre un devoir pour une classe.
         </Text>
       </View>
 
@@ -502,6 +635,7 @@ export default function TeacherAssignmentBuilderScreen() {
           initialStatus={initialStatus}
           dateWarning={dateWarning}
           onSave={saveAssignment}
+          isSaving={isSaving}
         />
       ) : null}
 
@@ -521,12 +655,14 @@ export default function TeacherAssignmentBuilderScreen() {
             onPress={goToNextStep}
             primary
             hint="Passe à l’étape suivante"
+            disabled={isSaving}
           />
         </View>
       ) : (
         <ActionButton
           label="Modifier les informations"
           onPress={() => setStep("information")}
+          disabled={isSaving}
         />
       )}
 
@@ -545,6 +681,7 @@ export default function TeacherAssignmentBuilderScreen() {
         }
         confirmLabel="Quitter"
         destructive
+        submitting={isSaving}
         onCancel={() => setExitDialogVisible(false)}
         onConfirm={() => {
           setExitDialogVisible(false);
@@ -688,11 +825,11 @@ function ContentStep({
             <View style={styles.selectionCopy}>
               <Text style={styles.unavailableTitle}>Cours indisponible</Text>
               <Text style={styles.bodyText}>
-                Le brouillon lié a été supprimé. Choisis un autre cours ou
-                conserve cette référence lors de la modification.
+                Le cours lié a été supprimé. Choisis un autre cours ou crée un
+                devoir libre.
               </Text>
             </View>
-            <Text style={styles.selectionState}>Référence conservée</Text>
+            <Text style={styles.selectionState}>Cours supprimé</Text>
           </View>
         ) : null}
         {drafts.length === 0 ? (
@@ -730,7 +867,7 @@ function ContentStep({
                       · {draft.level ?? "Niveau non défini"} · {draft.variety}
                     </Text>
                     <Text style={styles.selectionMeta}>
-                      Brouillon local · {draft.selectedConceptIds.length} notion
+                      Brouillon · {draft.selectedConceptIds.length} notion
                       {draft.selectedConceptIds.length === 1 ? "" : "s"}
                       {assigned ? " · Déjà attribué à cette classe" : ""}
                     </Text>
@@ -825,6 +962,7 @@ function InformationStep({
         value={title}
         placeholder="Ex. Révision des mots interrogatifs"
         onChangeText={onTitleChange}
+        maxLength={160}
       />
       <Field
         label="Consignes (facultatif)"
@@ -856,7 +994,7 @@ function InformationStep({
         />
         <ChoiceButton
           label="Publier maintenant"
-          description="Publication locale uniquement, sans notification réelle."
+          description="Le devoir sera enregistré puis placé dans Publiés."
           selected={initialStatus === "published"}
           onPress={() => onStatusChange("published")}
         />
@@ -876,6 +1014,7 @@ function PreviewStep({
   initialStatus,
   dateWarning,
   onSave,
+  isSaving,
 }: {
   title: string;
   instructions: string;
@@ -886,14 +1025,15 @@ function PreviewStep({
   dueDate?: string;
   initialStatus: InitialStatus;
   dateWarning?: string;
-  onSave: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>4. Aperçu du devoir</Text>
       <View style={styles.previewCard}>
         <Text style={styles.previewEyebrow}>
-          {initialStatus === "draft" ? "BROUILLON LOCAL" : "PUBLICATION LOCALE"}
+          {initialStatus === "draft" ? "BROUILLON" : "PUBLICATION"}
         </Text>
         <Text style={styles.previewTitle}>{title.trim()}</Text>
         <PreviewRow label="Classe" value={teacherClass.name} />
@@ -928,8 +1068,8 @@ function PreviewStep({
           label="Statut prévu"
           value={
             initialStatus === "draft"
-              ? "Brouillon local"
-              : "Publié localement"
+              ? "Brouillon"
+              : "Publié"
           }
         />
 
@@ -960,33 +1100,24 @@ function PreviewStep({
         </Text>
       ) : null}
 
-      <View style={styles.demoCard}>
-        <Text style={styles.demoCardTitle}>Données locales</Text>
-        <Text style={styles.demoCardText}>
-          Ce devoir est conservé uniquement pendant cette session de
-          démonstration.
-        </Text>
-        {initialStatus === "published" ? (
-          <Text style={styles.demoCardText}>
-            Le devoir sera marqué comme publié localement, sans notification
-            réelle.
-          </Text>
-        ) : null}
-      </View>
-
       <ActionButton
         label={
-          initialStatus === "draft"
+          isSaving
+            ? initialStatus === "draft"
+              ? "Enregistrement…"
+              : "Publication…"
+            : initialStatus === "draft"
             ? "Ajouter aux brouillons"
             : "Publier le devoir"
         }
         hint={
           initialStatus === "draft"
-            ? "Enregistre ce devoir localement comme brouillon"
-            : "Marque ce devoir comme publié localement"
+            ? "Enregistre ce devoir comme brouillon"
+            : "Enregistre puis publie ce devoir"
         }
         onPress={onSave}
         primary
+        disabled={isSaving}
       />
     </View>
   );
@@ -995,6 +1126,7 @@ function PreviewStep({
 function Field({
   label,
   inputMode,
+  maxLength,
   ...inputProps
 }: {
   label: string;
@@ -1002,6 +1134,7 @@ function Field({
   placeholder: string;
   multiline?: boolean;
   inputMode?: "numeric";
+  maxLength?: number;
   onChangeText: (value: string) => void;
 }) {
   return (
@@ -1011,6 +1144,7 @@ function Field({
         accessibilityLabel={label}
         placeholderTextColor={HOME_COLORS.textMuted}
         inputMode={inputMode}
+        maxLength={maxLength}
         style={[
           styles.input,
           inputProps.multiline && styles.multilineInput,
@@ -1089,21 +1223,26 @@ function ActionButton({
   hint,
   onPress,
   primary = false,
+  disabled = false,
 }: {
   label: string;
   hint?: string;
-  onPress: () => void;
+  onPress: () => void | Promise<void>;
   primary?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={hint}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.actionButton,
         primary && styles.primaryButton,
+        disabled && styles.disabled,
         pressed && styles.pressed,
       ]}
     >
@@ -1123,25 +1262,31 @@ function NotFoundState({
   title,
   description,
   assignment,
+  actionLabel,
+  onAction,
 }: {
   title: string;
   description: string;
   assignment?: TeacherAssignment;
+  actionLabel?: string;
+  onAction?: () => void;
 }) {
   return (
     <View style={styles.emptyCard}>
-      <Text style={styles.eyebrow}>CONSTRUCTEUR LOCAL</Text>
+      <Text style={styles.eyebrow}>CONSTRUCTEUR DE DEVOIR</Text>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.bodyText}>{description}</Text>
       <ActionButton
-        label={assignment ? "Voir le devoir" : "Retour aux devoirs"}
-        onPress={() =>
-          assignment
-            ? router.replace({
-                pathname: "/teacher/assignment/[assignmentId]",
-                params: { assignmentId: assignment.id },
-              })
-            : router.replace("/teacher/assignments")
+        label={actionLabel ?? (assignment ? "Voir le devoir" : "Retour aux devoirs")}
+        onPress={
+          onAction ??
+          (() =>
+            assignment
+              ? router.replace({
+                  pathname: "/teacher/assignment/[assignmentId]",
+                  params: { assignmentId: assignment.id },
+                })
+              : router.replace("/teacher/assignments"))
         }
         primary
       />
@@ -1462,5 +1607,6 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
   primaryButtonText: { color: HOME_COLORS.ink },
+  disabled: { opacity: 0.48 },
   pressed: { opacity: 0.78, transform: [{ scale: 0.98 }] },
 });

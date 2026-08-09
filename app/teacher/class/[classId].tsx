@@ -73,7 +73,7 @@ export default function TeacherClassDetailScreen() {
   const params = useLocalSearchParams<ClassDetailParams>();
   const classId = getParam(params.classId);
   const { refreshNotifications } = useNotifications();
-  const { assignments } = useTeacherAssignments();
+  const { assignments, refreshAssignments } = useTeacherAssignments();
   const {
     getClassById,
     updateClass,
@@ -260,6 +260,7 @@ export default function TeacherClassDetailScreen() {
     setPendingClassAction(undefined);
 
     if (action === "delete") {
+      await refreshAssignments();
       router.replace("/teacher/classes");
       return;
     }

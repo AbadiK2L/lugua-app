@@ -82,12 +82,12 @@ export function formatLocalDate(isoDate?: string) {
 
 export function getAssignmentStatusLabel(status: TeacherAssignmentStatus) {
   if (status === "draft") {
-    return "Brouillon local";
+    return "Brouillon";
   }
   if (status === "published") {
-    return "Publié localement";
+    return "Publié";
   }
-  return "Clôturé pour cette session";
+  return "Clôturé";
 }
 
 export function getConceptTitle(conceptId: string) {

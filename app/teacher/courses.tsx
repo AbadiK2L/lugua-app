@@ -18,6 +18,7 @@ import {
 } from "@/src/components/teacher/courses/TeacherCoursesModeSwitch";
 import { TeacherDraftCoursesSection } from "@/src/components/teacher/courses/TeacherDraftCoursesSection";
 import { TeacherScreenShell } from "@/src/components/teacher/TeacherScreenShell";
+import { useTeacherAssignments } from "@/src/contexts/TeacherAssignmentsContext";
 import { useTeacherClasses } from "@/src/contexts/TeacherClassesContext";
 import { useTeacherCourseDrafts } from "@/src/contexts/TeacherCourseDraftsContext";
 import type { TeacherCourseDraft } from "@/src/types/teacher";
@@ -42,6 +43,7 @@ export default function TeacherCoursesScreen() {
     isMutating,
     refreshDrafts,
   } = useTeacherCourseDrafts();
+  const { refreshAssignments } = useTeacherAssignments();
   const { refreshClasses } = useTeacherClasses();
   const requestedMode = getParam(params.mode) === "my_courses" ? "my_courses" : "lugua_program";
   const [mode, setMode] = useState<TeacherCoursesMode>(requestedMode);
@@ -110,7 +112,7 @@ export default function TeacherCoursesScreen() {
       return;
     }
 
-    await refreshClasses();
+    await Promise.all([refreshClasses(), refreshAssignments()]);
     Alert.alert("Cours supprimé", "Le cours a été retiré de Mes cours.");
   }
 

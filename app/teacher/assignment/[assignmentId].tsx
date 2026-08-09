@@ -1,6 +1,12 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { TeacherAssignmentActionDialog } from "@/src/components/teacher/assignments/TeacherAssignmentActionDialog";
@@ -23,34 +29,42 @@ type PendingAction = "publish" | "delete" | "close" | "reopen";
 type ActionFeedback = {
   title: string;
   description: string;
+  error?: boolean;
 };
 
 function getPublishFailureFeedback(
   reason: PublishAssignmentFailureReason,
+  message: string,
 ): ActionFeedback {
   if (reason === "class_archived") {
     return {
       title: "Impossible de publier",
       description:
         "La classe liée est archivée. Restaure-la ou choisis une autre classe.",
+      error: true,
     };
   }
   if (reason === "class_not_found") {
     return {
       title: "Impossible de publier",
       description: "La classe liée n’est plus disponible.",
+      error: true,
     };
   }
   if (reason === "missing_title") {
     return {
       title: "Impossible de publier",
       description: "Ajoute un titre au devoir avant de le publier.",
+      error: true,
     };
   }
-  return {
-    title: "Devoir introuvable",
-    description: "Ce devoir n’est plus disponible dans cette session.",
-  };
+  return reason === "assignment_not_found"
+    ? {
+        title: "Devoir introuvable",
+        description: "Ce devoir n’est plus disponible.",
+        error: true,
+      }
+    : { title: "Action impossible", description: message, error: true };
 }
 
 export default function TeacherAssignmentDetailScreen() {
@@ -63,9 +77,23 @@ export default function TeacherAssignmentDetailScreen() {
     reopenAssignment,
     duplicateAssignment,
     deleteAssignment,
+    isLoading: assignmentsIsLoading,
+    isMutating,
+    error: assignmentsError,
+    refreshAssignments,
   } = useTeacherAssignments();
-  const { classes } = useTeacherClasses();
-  const { drafts } = useTeacherCourseDrafts();
+  const {
+    classes,
+    isLoading: classesIsLoading,
+    error: classesError,
+    refreshClasses,
+  } = useTeacherClasses();
+  const {
+    drafts,
+    isLoading: coursesIsLoading,
+    error: coursesError,
+    refreshDrafts,
+  } = useTeacherCourseDrafts();
   const assignment = assignmentId
     ? getAssignmentById(assignmentId)
     : undefined;
@@ -74,6 +102,9 @@ export default function TeacherAssignmentDetailScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLeavingAfterDelete, setIsLeavingAfterDelete] = useState(false);
   const actionLockRef = useRef(false);
+  const isLoading =
+    assignmentsIsLoading || classesIsLoading || coursesIsLoading;
+  const loadingError = assignmentsError ?? classesError ?? coursesError;
 
   useEffect(() => {
     if (!pendingAction) {
@@ -93,6 +124,45 @@ export default function TeacherAssignmentDetailScreen() {
     );
   }
 
+  if (isLoading) {
+    return (
+      <TeacherScreenShell hideBottomNavigation>
+        <View style={styles.notFound}>
+          <ActivityIndicator color={HOME_COLORS.accent} />
+          <Text style={styles.title}>Chargement du devoir…</Text>
+          <Text style={styles.subtitle}>
+            Le détail enregistré est en cours de chargement.
+          </Text>
+        </View>
+      </TeacherScreenShell>
+    );
+  }
+
+  if (loadingError) {
+    return (
+      <TeacherScreenShell hideBottomNavigation>
+        <View style={styles.notFound}>
+          <Text style={styles.eyebrow}>ESPACE PROFESSEUR</Text>
+          <Text style={styles.title}>Chargement impossible</Text>
+          <Text accessibilityRole="alert" style={styles.subtitle}>
+            {loadingError}
+          </Text>
+          <ActionButton
+            label="Réessayer"
+            onPress={() => {
+              void Promise.all([
+                refreshAssignments(),
+                refreshClasses(),
+                refreshDrafts(),
+              ]);
+            }}
+            primary
+          />
+        </View>
+      </TeacherScreenShell>
+    );
+  }
+
   if (!assignment) {
     return (
       <TeacherScreenShell hideBottomNavigation>
@@ -100,7 +170,7 @@ export default function TeacherAssignmentDetailScreen() {
           <Text style={styles.eyebrow}>ESPACE PROFESSEUR</Text>
           <Text style={styles.title}>Devoir introuvable</Text>
           <Text style={styles.subtitle}>
-            Ce devoir n’existe pas ou n’est plus disponible dans cette session.
+            Ce devoir n’existe pas ou n’est plus disponible.
           </Text>
           <ActionButton
             label="Retour aux devoirs"
@@ -125,7 +195,8 @@ export default function TeacherAssignmentDetailScreen() {
     if (!normalizedId) {
       setFeedback({
         title: "Devoir introuvable",
-        description: "Ce devoir n’est plus disponible dans cette session.",
+        description: "Ce devoir n’est plus disponible.",
+        error: true,
       });
       return undefined;
     }
@@ -140,27 +211,38 @@ export default function TeacherAssignmentDetailScreen() {
     setPendingAction(action);
   }
 
-  function duplicate() {
+  async function duplicate() {
+    if (actionLockRef.current || isMutating) {
+      return;
+    }
+
     const normalizedId = getCurrentAssignmentId();
     if (!normalizedId) {
       return;
     }
-    const result = duplicateAssignment(normalizedId);
-    if (!result) {
-      setFeedback({
-        title: "Devoir introuvable",
-        description: "Ce devoir n’est plus disponible dans cette session.",
-      });
-      return;
-    }
+    actionLockRef.current = true;
 
-    router.replace({
-      pathname: "/teacher/assignments",
-      params: { status: "draft", notice: "duplicated" },
-    });
+    try {
+      const result = await duplicateAssignment(normalizedId);
+      if (!result.ok) {
+        setFeedback({
+          title: "Duplication impossible",
+          description: result.message,
+          error: true,
+        });
+        return;
+      }
+
+      router.replace({
+        pathname: "/teacher/assignments",
+        params: { status: "draft", notice: "duplicated" },
+      });
+    } finally {
+      actionLockRef.current = false;
+    }
   }
 
-  function confirmPendingAction() {
+  async function confirmPendingAction() {
     if (!pendingAction || actionLockRef.current) {
       return;
     }
@@ -174,40 +256,74 @@ export default function TeacherAssignmentDetailScreen() {
     actionLockRef.current = true;
     setIsSubmitting(true);
 
-    if (pendingAction === "publish") {
-      const result = publishAssignment(normalizedId);
-      if (!result.ok) {
-        setFeedback(getPublishFailureFeedback(result.reason));
-      } else {
-        setFeedback({
-          title: "Devoir publié",
-          description:
-            "Le devoir est maintenant visible dans Publiés pour cette session.",
-        });
+    try {
+      if (pendingAction === "publish") {
+        const result = await publishAssignment(normalizedId);
+        if (!result.ok) {
+          setFeedback(
+            getPublishFailureFeedback(result.reason, result.message),
+          );
+        } else {
+          setFeedback({
+            title: "Devoir publié",
+            description: "Le devoir est maintenant dans Publiés.",
+          });
+        }
+        return;
       }
+
+      if (pendingAction === "delete") {
+        const result = await deleteAssignment(normalizedId);
+        if (!result.ok) {
+          setFeedback({
+            title: "Suppression impossible",
+            description: result.message,
+            error: true,
+          });
+          return;
+        }
+
+        setIsLeavingAfterDelete(true);
+        router.replace({
+          pathname: "/teacher/assignments",
+          params: {
+            status: currentAssignment.status,
+            notice: "deleted",
+          },
+        });
+        return;
+      }
+
+      const result =
+        pendingAction === "close"
+          ? await closeAssignment(normalizedId)
+          : await reopenAssignment(normalizedId);
+
+      if (!result.ok) {
+        setFeedback({
+          title:
+            pendingAction === "close"
+              ? "Clôture impossible"
+              : "Réouverture impossible",
+          description: result.message,
+          error: true,
+        });
+      } else {
+        setFeedback(
+          pendingAction === "close"
+            ? {
+                title: "Devoir clôturé",
+                description: "Le devoir est maintenant dans Terminés.",
+              }
+            : {
+                title: "Devoir rouvert",
+                description: "Le devoir est de nouveau dans Publiés.",
+              },
+        );
+      }
+    } finally {
       setPendingAction(undefined);
-      return;
     }
-
-    if (pendingAction === "delete") {
-      setIsLeavingAfterDelete(true);
-      deleteAssignment(normalizedId);
-      router.replace({
-        pathname: "/teacher/assignments",
-        params: {
-          status: currentAssignment.status,
-          notice: "deleted",
-        },
-      });
-      return;
-    }
-
-    if (pendingAction === "close") {
-      closeAssignment(normalizedId);
-    } else {
-      reopenAssignment(normalizedId);
-    }
-    setPendingAction(undefined);
   }
 
   function openEditor() {
@@ -230,16 +346,14 @@ export default function TeacherAssignmentDetailScreen() {
     pendingAction === "publish"
       ? {
           title: "Publier ce devoir ?",
-          message:
-            "Il sera marqué comme publié pour cette classe pendant la session actuelle. Aucune notification réelle ne sera envoyée.",
+          message: "Il sera enregistré dans Publiés pour cette classe.",
           confirmLabel: "Publier",
           destructive: false,
         }
       : pendingAction === "delete"
         ? {
             title: "Supprimer ce devoir ?",
-            message:
-              "Cette action supprimera le devoir de la session actuelle.",
+            message: "Cette action supprimera définitivement le devoir.",
             confirmLabel: "Supprimer",
             destructive: true,
           }
@@ -247,13 +361,13 @@ export default function TeacherAssignmentDetailScreen() {
           ? {
               title: "Clôturer ce devoir ?",
               message:
-                "Il sera déplacé dans Terminés. Aucun nouveau rendu ne pourra être simulé dans cette maquette.",
+                "Il sera déplacé dans Terminés. Aucun rendu réel n’est encore géré.",
               confirmLabel: "Clôturer",
               destructive: false,
             }
           : {
               title: "Rouvrir ce devoir ?",
-              message: "Il redeviendra publié dans cette session.",
+              message: "Il redeviendra publié.",
               confirmLabel: "Rouvrir",
               destructive: false,
             };
@@ -277,7 +391,6 @@ export default function TeacherAssignmentDetailScreen() {
         >
           <Text style={styles.backText}>← Retour</Text>
         </Pressable>
-        <Text style={styles.demoLabel}>Données locales</Text>
       </View>
 
       <TeacherAssignmentSummaryCard
@@ -293,8 +406,7 @@ export default function TeacherAssignmentDetailScreen() {
           onPress={() => setFeedback(undefined)}
           style={[
             styles.feedback,
-            feedback.title === "Impossible de publier" &&
-              styles.errorFeedback,
+            feedback.error && styles.errorFeedback,
           ]}
         >
           <Text style={styles.feedbackTitle}>{feedback.title}</Text>
@@ -314,6 +426,7 @@ export default function TeacherAssignmentDetailScreen() {
         onClose={() => requestAction("close")}
         onReopen={() => requestAction("reopen")}
         onDelete={() => requestAction("delete")}
+        disabled={isMutating || isSubmitting}
       />
 
       <TeacherAssignmentActionDialog
@@ -322,7 +435,7 @@ export default function TeacherAssignmentDetailScreen() {
         message={pendingDialog.message}
         confirmLabel={pendingDialog.confirmLabel}
         destructive={pendingDialog.destructive}
-        submitting={isSubmitting}
+        submitting={isSubmitting || isMutating}
         onCancel={() => setPendingAction(undefined)}
         onConfirm={confirmPendingAction}
       />

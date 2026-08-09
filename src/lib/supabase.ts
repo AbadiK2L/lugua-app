@@ -17,6 +17,11 @@ import type {
   StudentDirectoryEntryRow,
 } from "@/src/types/classes";
 import type {
+  TeacherAssignmentInsertRow,
+  TeacherAssignmentRow,
+  TeacherAssignmentUpdateRow,
+} from "@/src/types/assignments";
+import type {
   ClassCourseAssignmentInsertRow,
   ClassCourseAssignmentRow,
   TeacherCourseInsertRow,
@@ -61,6 +66,12 @@ type Database = {
         Row: ClassCourseAssignmentRow;
         Insert: ClassCourseAssignmentInsertRow;
         Update: never;
+        Relationships: [];
+      };
+      teacher_assignments: {
+        Row: TeacherAssignmentRow;
+        Insert: TeacherAssignmentInsertRow;
+        Update: TeacherAssignmentUpdateRow;
         Relationships: [];
       };
     };
@@ -125,6 +136,18 @@ type Database = {
       mark_all_notifications_read: {
         Args: Record<string, never>;
         Returns: undefined;
+      };
+      publish_teacher_assignment: {
+        Args: { target_assignment_id: string };
+        Returns: TeacherAssignmentRow;
+      };
+      close_teacher_assignment: {
+        Args: { target_assignment_id: string };
+        Returns: TeacherAssignmentRow;
+      };
+      reopen_teacher_assignment: {
+        Args: { target_assignment_id: string };
+        Returns: TeacherAssignmentRow;
       };
     };
     Enums: Record<string, never>;
