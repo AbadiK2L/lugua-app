@@ -1,9 +1,10 @@
 import { useFocusEffect } from "@react-navigation/native";
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { TeacherAssignmentActionDialog } from "@/src/components/teacher/assignments/TeacherAssignmentActionDialog";
 import {
@@ -125,7 +126,7 @@ export function StudentClassesSection() {
       ? {
           title: "Rejoindre cette classe ?",
           message:
-            "Tu auras accès aux cours et devoirs partagés lorsque leur synchronisation sera activée.",
+            "Tu auras accès aux cours et devoirs partagés dans cette classe.",
           confirmLabel: "Accepter",
           destructive: false,
         }
@@ -322,12 +323,27 @@ function JoinedClassCard({
   joinedClass: StudentClassMembership;
 }) {
   return (
-    <View style={styles.classCard}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Ouvrir la classe ${joinedClass.className}`}
+      onPress={() =>
+        router.push(`/student/class/${joinedClass.classId}` as Href)
+      }
+      style={({ pressed }) => [styles.classCard, pressed && styles.pressed]}
+    >
       <ClassCopy invitation={joinedClass} />
       <Text style={styles.meta}>
         Rejointe le {formatDate(joinedClass.joinedAt ?? joinedClass.respondedAt)}
       </Text>
-    </View>
+      <View style={styles.openRow}>
+        <Text style={styles.openLabel}>Voir la classe</Text>
+        <IconSymbol
+          name="chevron.right"
+          size={18}
+          color={HOME_COLORS.accent}
+        />
+      </View>
+    </Pressable>
   );
 }
 
@@ -414,6 +430,8 @@ const styles = StyleSheet.create({
   classDescription: { color: HOME_COLORS.textSecondary, fontSize: 13, fontWeight: "600", lineHeight: 19 },
   meta: { color: HOME_COLORS.accentMuted, fontSize: 12, fontWeight: "800", lineHeight: 18 },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  openRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 3, paddingTop: 2 },
+  openLabel: { color: HOME_COLORS.accent, fontSize: 12, fontWeight: "900" },
   smallButton: { minHeight: 44, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 9, backgroundColor: HOME_COLORS.surface, paddingHorizontal: 11 },
   primaryButton: { borderColor: HOME_COLORS.accent, backgroundColor: HOME_COLORS.accent },
   destructiveButton: { borderColor: "#8e4654" },

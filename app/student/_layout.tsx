@@ -53,6 +53,7 @@ export default function StudentLayout() {
             />
             <Tabs.Screen name="profile" options={{ href: null }} />
             <Tabs.Screen name="classes" options={{ href: null }} />
+            <Tabs.Screen name="class/[classId]" options={{ href: null }} />
             <Tabs.Screen name="notifications" options={{ href: null }} />
             <Tabs.Screen name="statistics" options={{ href: null }} />
           </Tabs>

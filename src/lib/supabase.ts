@@ -30,6 +30,10 @@ import type {
 } from "@/src/types/courses";
 import type { LuguaNotificationRow } from "@/src/types/notifications";
 import type { ProfileRow } from "@/src/types/profile";
+import type {
+  StudentClassAssignmentRow,
+  StudentClassCourseRow,
+} from "@/src/types/studentLearning";
 
 type ProfileUpdate = Partial<
   Pick<ProfileRow, "display_name" | "preferred_variety" | "updated_at">
@@ -120,6 +124,14 @@ type Database = {
       get_my_class_memberships: {
         Args: Record<string, never>;
         Returns: StudentClassMembershipRow[];
+      };
+      get_my_class_courses: {
+        Args: { target_class_id: string };
+        Returns: StudentClassCourseRow[];
+      };
+      get_my_class_assignments: {
+        Args: { target_class_id: string };
+        Returns: StudentClassAssignmentRow[];
       };
       respond_to_class_invitation: {
         Args: { membership_id: string; accept_invitation: boolean };

@@ -1,5 +1,5 @@
 import { useFocusEffect } from "@react-navigation/native";
-import { useLocalSearchParams } from "expo-router";
+import { router, type Href, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import { ProfileScreenShell } from "@/src/components/profile/ProfileScreenShell";
 import { TeacherAssignmentActionDialog } from "@/src/components/teacher/assignments/TeacherAssignmentActionDialog";
@@ -241,7 +242,7 @@ export default function StudentClassesScreen() {
       ? {
           title: "Rejoindre cette classe ?",
           message:
-            "Tu auras accès aux cours et devoirs partagés lorsque leur synchronisation sera activée.",
+            "Tu auras accès aux cours et devoirs partagés dans cette classe.",
           confirmLabel: "Accepter",
           destructive: false,
         }
@@ -444,6 +445,11 @@ function MyClassesTab({
               key={membership.membershipId}
               membership={membership}
               footer={`Rejointe le ${formatDate(membership.joinedAt ?? membership.respondedAt)}`}
+              onOpen={() =>
+                router.push(
+                  `/student/class/${membership.classId}` as Href,
+                )
+              }
             />
           ))
         )}
@@ -572,13 +578,15 @@ function MembershipCard({
   membership,
   footer,
   actions,
+  onOpen,
 }: {
   membership: StudentClassMembership;
   footer: string;
   actions?: ReactNode;
+  onOpen?: () => void;
 }) {
-  return (
-    <View style={styles.classCard}>
+  const content = (
+    <>
       <View style={styles.heading}>
         <Text style={styles.className} numberOfLines={2}>
           {membership.className}
@@ -595,7 +603,30 @@ function MembershipCard({
         <Text style={styles.meta}>{footer}</Text>
       </View>
       {actions}
-    </View>
+      {onOpen ? (
+        <View style={styles.openRow}>
+          <Text style={styles.openLabel}>Voir la classe</Text>
+          <IconSymbol
+            name="chevron.right"
+            size={18}
+            color={HOME_COLORS.accent}
+          />
+        </View>
+      ) : null}
+    </>
+  );
+
+  return onOpen ? (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Ouvrir la classe ${membership.className}`}
+      onPress={onOpen}
+      style={({ pressed }) => [styles.classCard, pressed && styles.pressed]}
+    >
+      {content}
+    </Pressable>
+  ) : (
+    <View style={styles.classCard}>{content}</View>
   );
 }
 
@@ -816,6 +847,8 @@ const styles = StyleSheet.create({
   classDescription: { color: HOME_COLORS.textSecondary, fontSize: 13, fontWeight: "600", lineHeight: 19 },
   meta: { color: HOME_COLORS.accentMuted, fontSize: 12, fontWeight: "800", lineHeight: 18 },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  openRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 3, paddingTop: 2 },
+  openLabel: { color: HOME_COLORS.accent, fontSize: 12, fontWeight: "900" },
   smallButton: { minHeight: 44, alignItems: "center", justifyContent: "center", alignSelf: "flex-start", borderWidth: 1, borderColor: HOME_COLORS.border, borderRadius: 9, backgroundColor: HOME_COLORS.surface, paddingHorizontal: 11 },
   primaryButton: { borderColor: HOME_COLORS.accent, backgroundColor: HOME_COLORS.accent },
   destructiveButton: { borderColor: "#8e4654" },
