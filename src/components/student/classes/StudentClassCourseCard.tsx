@@ -1,12 +1,15 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { HOME_COLORS } from "@/src/components/home/homeColors";
 import type { StudentClassCourse } from "@/src/types/studentLearning";
 
 export function StudentClassCourseCard({
   course,
+  onPress,
 }: {
   course: StudentClassCourse;
+  onPress: () => void;
 }) {
   const originLabel =
     course.origin === "lugua_program"
@@ -15,10 +18,12 @@ export function StudentClassCourseCard({
   const levelLabel = course.level ?? "Niveau non défini";
 
   return (
-    <View
-      accessible
-      accessibilityLabel={`${course.title}, ${originLabel}, ${course.language}, ${course.variety}, ${levelLabel}`}
-      style={styles.card}
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Voir le cours ${course.title}, ${originLabel}, ${course.language}, ${course.variety}, ${levelLabel}`}
+      accessibilityHint="Ouvre le détail du cours"
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={styles.header}>
         <Text style={styles.title}>{course.title}</Text>
@@ -44,7 +49,16 @@ export function StudentClassCourseCard({
           ))}
         </View>
       ) : null}
-    </View>
+
+      <View style={styles.footer}>
+        <Text style={styles.actionLabel}>Voir le cours</Text>
+        <IconSymbol
+          name="chevron.right"
+          size={18}
+          color={HOME_COLORS.accent}
+        />
+      </View>
+    </Pressable>
   );
 }
 
@@ -117,5 +131,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     lineHeight: 19,
+  },
+  footer: {
+    minHeight: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 3,
+    borderTopWidth: 1,
+    borderTopColor: HOME_COLORS.border,
+    paddingTop: 9,
+  },
+  actionLabel: {
+    color: HOME_COLORS.accent,
+    fontSize: 12,
+    fontWeight: "900",
+  },
+  pressed: {
+    borderColor: HOME_COLORS.accent,
+    backgroundColor: HOME_COLORS.cardActive,
+    transform: [{ scale: 0.99 }],
   },
 });

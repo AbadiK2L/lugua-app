@@ -28,6 +28,7 @@ import type {
   StudentClassAssignment,
   StudentClassCourse,
 } from "@/src/types/studentLearning";
+import { getStudentCourseHref } from "@/src/utils/studentCourseNavigation";
 
 type StudentClassDetailParams = {
   classId?: string | string[];
@@ -196,7 +197,18 @@ export default function StudentClassDetailScreen() {
         ) : (
           <View style={styles.list}>
             {courses.map((course) => (
-              <StudentClassCourseCard key={course.id} course={course} />
+              <StudentClassCourseCard
+                key={course.id}
+                course={course}
+                onPress={() =>
+                  router.push(
+                    getStudentCourseHref({
+                      classId: course.classId,
+                      courseId: course.id,
+                    }),
+                  )
+                }
+              />
             ))}
           </View>
         )}

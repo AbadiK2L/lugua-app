@@ -23,8 +23,20 @@ import type {
   InteractiveLessonResultThreshold,
   InteractiveLessonStep,
 } from "@/src/types/learning";
+import { getStudentCourseHref } from "@/src/utils/studentCourseNavigation";
 
 const UNAVAILABLE_MESSAGE = "Cette leçon interactive sera bientôt disponible.";
+
+type LessonParams = {
+  conceptId?: string | string[];
+  classId?: string | string[];
+  courseId?: string | string[];
+};
+
+type LessonCourseContext = {
+  classId: string;
+  courseId: string;
+};
 
 function normalizeParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -63,27 +75,52 @@ function isLetterBuilderStep(
   return step.interactionType === "letter_builder";
 }
 
-function renderMissingConcept() {
+function replaceCourseDetail({ classId, courseId }: LessonCourseContext) {
+  router.replace(getStudentCourseHref({ classId, courseId }));
+}
+
+function handleLessonBack(courseContext: LessonCourseContext | undefined) {
+  if (router.canGoBack()) {
+    router.back();
+    return;
+  }
+
+  if (courseContext) {
+    replaceCourseDetail(courseContext);
+    return;
+  }
+
+  router.replace("/student/scenarios");
+}
+
+function renderMissingConcept(
+  onBack: () => void,
+  backLabel: "Retour" | "Retour au cours",
+) {
   return (
     <View style={styles.centeredContainer}>
       <Text style={styles.emptyTitle}>Concept introuvable</Text>
       <Text style={styles.emptyText}>
         Aucun concept local ne correspond à cet identifiant.
       </Text>
-      <TouchableOpacity activeOpacity={0.85} style={styles.secondaryButton} onPress={router.back}>
-        <Text style={styles.secondaryButtonText}>Retour</Text>
+      <TouchableOpacity activeOpacity={0.85} style={styles.secondaryButton} onPress={onBack}>
+        <Text style={styles.secondaryButtonText}>{backLabel}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-function renderUnavailableLesson(message: string) {
+function renderUnavailableLesson(
+  message: string,
+  onBack: () => void,
+  backLabel: "Retour au concept" | "Retour au cours",
+) {
   return (
     <View style={styles.centeredContainer}>
       <Text style={styles.emptyTitle}>Bientôt disponible</Text>
       <Text style={styles.emptyText}>{message}</Text>
-      <TouchableOpacity activeOpacity={0.85} style={styles.secondaryButton} onPress={router.back}>
-        <Text style={styles.secondaryButtonText}>Retour au concept</Text>
+      <TouchableOpacity activeOpacity={0.85} style={styles.secondaryButton} onPress={onBack}>
+        <Text style={styles.secondaryButtonText}>{backLabel}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -333,6 +370,7 @@ type ResultContentProps = {
   score: number;
   totalExercises: number;
   conceptId: string;
+  courseContext?: LessonCourseContext;
   onRestart: () => void;
 };
 
@@ -341,6 +379,7 @@ function ResultContent({
   score,
   totalExercises,
   conceptId,
+  courseContext,
   onRestart,
 }: ResultContentProps) {
   const percentage =
@@ -377,35 +416,51 @@ function ResultContent({
         <TouchableOpacity activeOpacity={0.85} style={styles.primaryButton} onPress={onRestart}>
           <Text style={styles.primaryButtonText}>Recommencer</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.secondaryButton}
-          onPress={() =>
-            router.replace({
-              pathname: "../concept/[id]",
-              params: {
-                id: conceptId,
-              },
-            })
-          }
-        >
-          <Text style={styles.secondaryButtonText}>Retour au concept</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.secondaryButton}
-          onPress={() => router.replace("/student/scenarios")}
-        >
-          <Text style={styles.secondaryButtonText}>Retour au parcours</Text>
-        </TouchableOpacity>
+        {courseContext ? (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.secondaryButton}
+            onPress={() => replaceCourseDetail(courseContext)}
+          >
+            <Text style={styles.secondaryButtonText}>Retour au cours</Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.secondaryButton}
+              onPress={() =>
+                router.replace({
+                  pathname: "../concept/[id]",
+                  params: {
+                    id: conceptId,
+                  },
+                })
+              }
+            >
+              <Text style={styles.secondaryButtonText}>Retour au concept</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.secondaryButton}
+              onPress={() => router.replace("/student/scenarios")}
+            >
+              <Text style={styles.secondaryButtonText}>Retour au parcours</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );
 }
 
 export default function LessonScreen() {
-  const params = useLocalSearchParams<{ conceptId?: string | string[] }>();
+  const params = useLocalSearchParams<LessonParams>();
   const conceptId = normalizeParam(params.conceptId);
+  const classId = normalizeParam(params.classId);
+  const courseId = normalizeParam(params.courseId);
+  const courseContext =
+    classId && courseId ? { classId, courseId } : undefined;
   const details = findConceptDetails(conceptId);
   const concept = details?.concept;
   const chapter = details?.chapter;
@@ -421,11 +476,18 @@ export default function LessonScreen() {
   const exerciseSteps = lesson ? getExerciseSteps(lesson) : [];
 
   if (!details || !conceptId) {
-    return renderMissingConcept();
+    return renderMissingConcept(
+      () => handleLessonBack(courseContext),
+      courseContext ? "Retour au cours" : "Retour",
+    );
   }
 
   if (!lesson?.enabled) {
-    return renderUnavailableLesson(lesson?.unavailableMessage ?? UNAVAILABLE_MESSAGE);
+    return renderUnavailableLesson(
+      lesson?.unavailableMessage ?? UNAVAILABLE_MESSAGE,
+      () => handleLessonBack(courseContext),
+      courseContext ? "Retour au cours" : "Retour au concept",
+    );
   }
 
   const totalSteps = lesson.steps.length + 1;
@@ -490,7 +552,11 @@ export default function LessonScreen() {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <TouchableOpacity activeOpacity={0.85} style={styles.backButton} onPress={router.back}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        style={styles.backButton}
+        onPress={() => handleLessonBack(courseContext)}
+      >
         <Text style={styles.backButtonText}>Retour</Text>
       </TouchableOpacity>
 
@@ -506,6 +572,7 @@ export default function LessonScreen() {
           score={score}
           totalExercises={exerciseSteps.length}
           conceptId={conceptId}
+          courseContext={courseContext}
           onRestart={handleRestart}
         />
       ) : (
