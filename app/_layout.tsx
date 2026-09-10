@@ -38,6 +38,10 @@ function RootNavigation() {
         <Stack.Screen name="concept/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="dictionary/[id]" options={{ headerShown: false }} />
         <Stack.Screen
+          name="dictionary/lexeme/[lexemeId]"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="assessment/[assessmentId]"
           options={{ headerShown: false }}
         />

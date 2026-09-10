@@ -29,6 +29,7 @@ import type {
   TeacherCourseUpdateRow,
 } from "@/src/types/courses";
 import type { LuguaNotificationRow } from "@/src/types/notifications";
+import type { PublishedDictionarySearchRpcRow } from "@/src/types/publishedDictionary";
 import type { ProfileRow } from "@/src/types/profile";
 import type {
   StudentClassAssignmentRow,
@@ -160,6 +161,21 @@ type Database = {
       reopen_teacher_assignment: {
         Args: { target_assignment_id: string };
         Returns: TeacherAssignmentRow;
+      };
+      search_published_linguistic_entries: {
+        Args: {
+          p_query: string;
+          p_locale_code: string;
+          p_language_code: string | null;
+          p_variety_id: string | null;
+          p_limit: number;
+          p_offset: number;
+        };
+        Returns: PublishedDictionarySearchRpcRow[];
+      };
+      get_published_lexeme_entry: {
+        Args: { p_lexeme_id: string; p_locale_code: string };
+        Returns: unknown;
       };
     };
     Enums: Record<string, never>;
